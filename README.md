@@ -46,7 +46,7 @@ Expected response:
 ```json
 {
   "status": "ok",
-  "message": "Marketplace API is running"
+  "service": "marketplace-api"
 }
 ```
 
@@ -68,6 +68,7 @@ its local services.
 
    ```dotenv
    PORT=4000
+   CORS_ORIGIN=http://localhost:3000
    SUPABASE_URL=http://127.0.0.1:54321
    SUPABASE_PUBLISHABLE_KEY=<local publishable or anon key>
    SUPABASE_SECRET_KEY=<local secret or service_role key>
@@ -100,6 +101,7 @@ npm run supabase:stop
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `PORT` | No | Express port; defaults to `4000`. |
+| `CORS_ORIGIN` | No | Allowed browser origin; defaults to `http://localhost:3000`. |
 | `SUPABASE_URL` | For Supabase routes | Local or hosted Supabase project URL. |
 | `SUPABASE_SECRET_KEY` | For Supabase routes | Server-only secret/service-role key used by the admin client. |
 | `SUPABASE_PUBLISHABLE_KEY` | Not yet used | Public/anon key reserved for non-admin Supabase access. |
@@ -143,19 +145,22 @@ adding another local or deployed frontend origin.
 
 | Command | Description |
 | --- | --- |
-| `npm run dev` | Run `src/app.js` with automatic reloads. |
+| `npm run dev` | Run `src/server.js` with automatic reloads. |
+| `npm run typecheck` | Check the API JavaScript files for syntax errors. |
+| `npm run build` | Run the API validation required for the production image. |
 | `npm run supabase:start` | Start the local Supabase stack. |
 | `npm run supabase:status` | Show local service URLs and credentials. |
 | `npm run supabase:stop` | Stop the local Supabase stack. |
 | `npm run supabase:reset` | Recreate the local database and apply migrations/seed data. |
-| `npm test` | Placeholder only; no automated test suite is configured yet. |
+| `npm test` | Run the Vitest integration test suite. |
 
 ## Folder structure
 
 ```text
 marketplace-api/
 |-- src/
-|   |-- app.js                 # Express setup, middleware, routes, and listener
+|   |-- app.js                 # Express setup, middleware, and routes
+|   |-- server.js              # Environment loading and HTTP listener
 |   `-- config/
 |       `-- supabase.js        # Validated server-side Supabase admin client
 |-- supabase/
@@ -164,6 +169,7 @@ marketplace-api/
 |-- .gitignore                 # Dependencies, secrets, and generated files
 |-- Dockerfile                 # Production Express image definition
 |-- compose.yaml               # Docker Desktop API service and health check
+|-- tests/                     # Vitest/Supertest integration tests
 |-- package.json               # Dependencies and npm scripts
 `-- README.Docker.md            # Docker Desktop for Windows runbook
 ```

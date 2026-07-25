@@ -58,6 +58,7 @@ Copy the publishable/anon and secret/service-role keys printed by
 
 ```dotenv
 PORT=4000
+CORS_ORIGIN=http://localhost:3000
 SUPABASE_URL=http://127.0.0.1:54321
 SUPABASE_PUBLISHABLE_KEY=<local publishable or anon key>
 SUPABASE_SECRET_KEY=<local secret or service_role key>
@@ -101,7 +102,7 @@ Expected response:
 ```json
 {
   "status": "ok",
-  "message": "Marketplace API is running"
+  "service": "marketplace-api"
 }
 ```
 

@@ -1,28 +1,21 @@
-import "dotenv/config";
-
 import express from "express";
 import cors from "cors";
 
 const app = express();
 
-app.use(express.json());
-
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: process.env.CORS_ORIGIN || "http://localhost:3000",
     credentials: true,
   })
 );
+app.use(express.json());
 
 app.get("/api/health", (req, res) => {
-  res.json({
+  res.status(200).json({
     status: "ok",
-    message: "Marketplace API is running",
+    service: "marketplace-api",
   });
 });
 
-const PORT = process.env.PORT || 4000;
-
-app.listen(PORT, () => {
-  console.log(`API running on http://localhost:${PORT}`);
-});
+export default app;
