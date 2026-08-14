@@ -128,8 +128,7 @@ using (
   )
 );
 
-grant select on public.shops, public.shop_pickup_areas, public.products to anon;
+grant select on public.shops, public.shop_pickup_areas to anon;
 grant select, insert, update, delete
-  on public.shops, public.shop_pickup_areas, public.products
+  on public.shops, public.shop_pickup_areas
   to authenticated;
-
