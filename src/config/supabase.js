@@ -11,6 +11,8 @@ if (!supabaseSecretKey) {
   throw new Error("SUPABASE_SECRET_KEY is not defined.");
 }
 
+// Server-only client. The service-role key bypasses Row Level Security, so do
+// not use this client for ordinary user-scoped requests or token validation.
 export const supabaseAdmin = createClient(
   supabaseUrl,
   supabaseSecretKey,

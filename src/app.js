@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import { authenticate } from "./middleware/authenticate.js";
 
 const app = express();
 
@@ -15,6 +16,12 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "ok",
     service: "marketplace-api",
+  });
+});
+
+app.get("/api/auth/me", authenticate, (req, res) => {
+  res.status(200).json({
+    user: req.user,
   });
 });
 
