@@ -1,6 +1,8 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { authenticate } from "./middleware/authenticate.js";
+import productsRouter from "./routes/products.routes.js";
 
 const app = express();
 
@@ -24,5 +26,7 @@ app.get("/api/auth/me", authenticate, (req, res) => {
     user: req.user,
   });
 });
+
+app.use("/api/products", productsRouter);
 
 export default app;
