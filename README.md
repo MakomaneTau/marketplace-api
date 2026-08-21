@@ -144,6 +144,11 @@ network flow, rebuild/stop commands, ports, and Windows troubleshooting.
 | `POST` | `/api/v1/products` | Creates a product for an authenticated seller's shop. |
 | `PATCH` | `/api/v1/products/:id` | Updates an authenticated seller-owned product. |
 | `DELETE` | `/api/v1/products/:id` | Deletes an authenticated seller-owned product. |
+| `GET` | `/api/v1/categories` | Lists categories with public active-product counts. |
+| `GET` | `/api/v1/categories/:slug` | Returns one category by slug. |
+| `GET` | `/api/v1/universities` | Lists searchable universities with campus counts. |
+| `GET` | `/api/v1/universities/:slug` | Returns a university and its campuses. |
+| `GET` | `/api/v1/universities/:slug/campuses` | Lists campuses for a university. |
 
 Protected endpoints require `Authorization: Bearer <Supabase access token>`.
 The product write endpoints also verify the seller role and shop ownership.

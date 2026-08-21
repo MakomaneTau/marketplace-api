@@ -80,7 +80,62 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { description: Seller role or shop ownership required }
         "404": { description: Product not found }
+  /api/v1/categories:
+    get:
+      summary: List product categories with active product counts
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string, maxLength: 100 }
+        - in: query
+          name: featured
+          schema: { type: boolean }
+      responses:
+        "200": { description: Category collection }
+        "400": { $ref: "#/components/responses/ValidationError" }
+  /api/v1/categories/{slug}:
+    get:
+      summary: Return a category by slug
+      parameters:
+        - $ref: "#/components/parameters/Slug"
+      responses:
+        "200": { description: Category found }
+        "404": { description: Category not found }
+  /api/v1/universities:
+    get:
+      summary: List universities with campus counts
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string, maxLength: 100 }
+      responses:
+        "200": { description: University collection }
+        "400": { $ref: "#/components/responses/ValidationError" }
+  /api/v1/universities/{slug}:
+    get:
+      summary: Return a university and its campuses
+      parameters:
+        - $ref: "#/components/parameters/Slug"
+      responses:
+        "200": { description: University found }
+        "404": { description: University not found }
+  /api/v1/universities/{slug}/campuses:
+    get:
+      summary: List campuses belonging to a university
+      parameters:
+        - $ref: "#/components/parameters/Slug"
+      responses:
+        "200": { description: University and campus collection }
+        "404": { description: University not found }
 components:
+  parameters:
+    Slug:
+      in: path
+      name: slug
+      required: true
+      schema:
+        type: string
+        pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
   securitySchemes:
     bearerAuth:
       type: http
