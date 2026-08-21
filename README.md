@@ -159,6 +159,13 @@ network flow, rebuild/stop commands, ports, and Windows troubleshooting.
 | `PATCH` | `/api/v1/profile` | Updates user-managed profile fields. |
 | `GET` | `/api/v1/verifications/seller` | Returns the seller's latest verification state. |
 | `POST` | `/api/v1/verifications/seller` | Uploads private `selfie` and `sellerId` verification images. |
+| `GET` | `/api/v1/shops/:slug` | Returns an open public shop and pickup areas. |
+| `GET` | `/api/v1/seller/shop` | Returns the authenticated seller's shop. |
+| `POST` | `/api/v1/seller/shop` | Creates the seller's single shop. |
+| `PATCH` | `/api/v1/seller/shop` | Updates shop identity and open state. |
+| `PUT` | `/api/v1/seller/shop/pickup-areas` | Atomically replaces campus pickup areas. |
+| `POST` | `/api/v1/seller/shop/logo` | Replaces the public shop logo image. |
+| `POST` | `/api/v1/seller/shop/banner` | Replaces the public shop banner image. |
 
 Protected endpoints require `Authorization: Bearer <Supabase access token>`.
 The product write endpoints also verify the seller role and shop ownership.

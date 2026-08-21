@@ -108,6 +108,49 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { description: Seller account required }
         "409": { description: Verification is already pending }
+  /api/v1/shops/{slug}:
+    get:
+      summary: Return an open public shop and pickup areas
+      parameters: [{ $ref: "#/components/parameters/Slug" }]
+      responses:
+        "200": { description: Public shop }
+        "404": { description: Shop not found }
+  /api/v1/seller/shop:
+    get:
+      summary: Return the authenticated seller's shop
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Seller shop or null }
+    post:
+      summary: Create the seller's shop
+      security: [{ bearerAuth: [] }]
+      responses:
+        "201": { description: Shop created }
+        "409": { description: Seller already has a shop }
+    patch:
+      summary: Update the seller's shop
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Shop updated }
+  /api/v1/seller/shop/pickup-areas:
+    put:
+      summary: Atomically replace campus pickup areas
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Shop with updated pickup areas }
+        "400": { $ref: "#/components/responses/ValidationError" }
+  /api/v1/seller/shop/logo:
+    post:
+      summary: Replace the public shop logo
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Shop with updated logo }
+  /api/v1/seller/shop/banner:
+    post:
+      summary: Replace the public shop banner
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Shop with updated banner }
     patch:
       summary: Update user-managed profile fields
       security: [{ bearerAuth: [] }]
