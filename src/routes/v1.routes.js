@@ -7,6 +7,7 @@ import verificationRouter from "./verification.routes.js";
 import { publicShopsRouter, sellerShopRouter } from "./shops.routes.js";
 import sellerProductsRouter from "./seller-products.routes.js";
 import favouritesRouter from "./favourites.routes.js";
+import { ordersRouter, sellerOrdersRouter } from "./orders.routes.js";
 
 const v1Router = Router();
 
@@ -19,5 +20,7 @@ v1Router.use("/shops", publicShopsRouter);
 v1Router.use("/seller/shop", sellerShopRouter);
 v1Router.use("/seller/products", sellerProductsRouter);
 v1Router.use("/favourites", favouritesRouter);
+v1Router.use("/orders", ordersRouter);
+v1Router.use("/seller/orders", sellerOrdersRouter);
 
 export default v1Router;
