@@ -15,7 +15,7 @@ authoritative source for exact code changes.
 | 07 | Complete | `feat/api-07-products-catalog` | `99fbe1d` | `3379773`, `22c4aa5`, `c3a8bcd`; merge `3a3da4b` | 55 tests; syntax check; build; database lint; live disposable seller draft, managed image upload, activation, public filters, seller inventory, cleanup | Paginated discovery, complete seller inventory routes, and six-image lifecycle |
 | 08 | Complete | `feat/api-08-favourites` | `e4385fc` | `170e18d`, `5738463`; merge `61ac2b2` | 60 tests; syntax check; build; live disposable save twice, list, remove, cleanup | Authenticated paginated favourites expose only currently public products |
 | 09 | Complete | `feat/api-09-orders` | `33fb60d` | `cbb9860`, `80dabd5`; merge `b89ba85` | 67 tests; syntax check; build; database lint; rollback-based totals, seller transitions, stock decrement, buyer cancellation, stock restore; live service-role query | Atomic single-shop checkout, immutable price snapshots, participant reads, and controlled lifecycle |
-| 10 | Pending | `feat/api-10-messaging` | Task 09 | Pending | Pending | Messaging and notifications |
+| 10 | Complete | `feat/api-10-messaging` | `2b7a609` | `c6a1888`; documentation and merge pending | 73 tests; syntax check; build; database lint; rollback-based idempotent conversation, message, notification | Participant conversations, unread state, message notifications, and order notifications |
 | 11 | Pending | `feat/api-11-reviews` | Task 10 | Pending | Pending | Reviews and reputation |
 | 12 | Pending | `feat/api-12-seller-insights` | Task 11 | Pending | Pending | Dashboard and analytics |
 | 13 | Pending | `feat/api-13-settings-hardening` | Task 12 | Pending | Pending | Preferences and hardening |
