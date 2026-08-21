@@ -18,7 +18,7 @@ authoritative source for exact code changes.
 | 10 | Complete | `feat/api-10-messaging` | `2b7a609` | `c6a1888`, `bc5b7ac`; merge `1bc436a` | 73 tests; syntax check; build; database lint; rollback-based idempotent conversation, message, notification | Participant conversations, unread state, message notifications, and order notifications |
 | 11 | Complete | `feat/api-11-reviews` | `4b746dc` | `74a97d2`, `a19a904`; merge `5a715a0` | 76 tests; syntax check; build; database lint; rollback-based completed-order review and reputation refresh | One review per order product, public review lists, derived shop/seller reputation, seller notification |
 | 12 | Complete | `feat/api-12-seller-insights` | `217918b` | `2aaa0d0`, `d27c7b0`; merge `ecc5c11` | 79 tests; syntax check; build | Seller dashboard counters, unread state, recent orders, revenue trends, AOV, views, and top products |
-| 13 | Pending | `feat/api-13-settings-hardening` | Task 12 | Pending | Pending | Preferences and hardening |
+| 13 | Complete | `feat/api-13-settings-hardening` | `4a05f0e` | implementation and documentation pending commit | 82 tests; syntax check; build; database lint; live disposable preference defaults/update/cleanup | Persisted notification settings, multi-origin CORS, opt-in proxy trust, HSTS, and browser capability headers |
 | 14 | Pending | `test/api-14-acceptance` | Task 13 | Pending | Pending | API-only acceptance |
 
 ## Boundaries

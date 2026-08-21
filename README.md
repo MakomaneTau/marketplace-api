@@ -172,6 +172,7 @@ network flow, rebuild/stop commands, ports, and Windows troubleshooting.
 | `GET` | `/api/v1/shops/:slug/reviews` | Lists public reviews for a shop. |
 | `GET` | `/api/v1/seller/dashboard` | Returns seller inventory, order, view, unread, and recent-order summaries. |
 | `GET` | `/api/v1/seller/analytics` | Returns revenue and product analytics for supported time windows. |
+| `GET/PATCH` | `/api/v1/settings` | Reads or updates authenticated notification preferences. |
 | `GET` | `/api/v1/categories` | Lists categories with public active-product counts. |
 | `GET` | `/api/v1/categories/:slug` | Returns one category by slug. |
 | `GET` | `/api/v1/universities` | Lists searchable universities with campus counts. |
@@ -229,6 +230,7 @@ adding another local or deployed frontend origin.
 | `npm run smoke:favourites` | Exercise the catalogue plus idempotent saved-product workflow. |
 | `npm run smoke:orders` | Validate totals, transitions, and stock changes inside a rolled-back SQL transaction. |
 | `npm run smoke:messaging` | Validate conversations, messages, and notification creation inside a rollback. |
+| `npm run smoke:settings` | Validate default and persisted settings with a disposable local user. |
 | `npm test` | Run the Vitest integration test suite. |
 
 ## Folder structure
