@@ -139,11 +139,17 @@ network flow, rebuild/stop commands, ports, and Windows troubleshooting.
 | --- | --- | --- |
 | `GET` | `/api/health` | Confirms that the Express process is running. |
 | `GET` | `/api/v1/auth/me` | Returns the Supabase user for a valid bearer access token. |
-| `GET` | `/api/v1/products` | Lists active products belonging to open shops. |
+| `GET` | `/api/v1/products` | Searches, filters, sorts, and paginates active products from open shops. |
 | `GET` | `/api/v1/products/:id` | Returns one publicly visible product. |
 | `POST` | `/api/v1/products` | Creates a product for an authenticated seller's shop. |
 | `PATCH` | `/api/v1/products/:id` | Updates an authenticated seller-owned product. |
 | `DELETE` | `/api/v1/products/:id` | Deletes an authenticated seller-owned product. |
+| `GET` | `/api/v1/seller/products` | Lists the authenticated seller's inventory, including non-public statuses. |
+| `POST` | `/api/v1/seller/products` | Creates a draft product in the authenticated seller's shop. |
+| `PATCH` | `/api/v1/seller/products/:id` | Updates an authenticated seller-owned product. |
+| `DELETE` | `/api/v1/seller/products/:id` | Deletes an owned product and its managed images. |
+| `POST` | `/api/v1/seller/products/:id/images` | Appends one managed public product image. |
+| `DELETE` | `/api/v1/seller/products/:id/images/:index` | Removes one managed product image by ordered index. |
 | `GET` | `/api/v1/categories` | Lists categories with public active-product counts. |
 | `GET` | `/api/v1/categories/:slug` | Returns one category by slug. |
 | `GET` | `/api/v1/universities` | Lists searchable universities with campus counts. |
@@ -197,6 +203,7 @@ adding another local or deployed frontend origin.
 | `npm run supabase:reset` | Recreate the local database and apply migrations/seed data. |
 | `npm run supabase:lint` | Lint the currently running local database schema. |
 | `npm run smoke:local` | Exercise seeded authentication and product CRUD against running local services. |
+| `npm run smoke:products` | Exercise the live seller catalogue workflow with disposable local records. |
 | `npm test` | Run the Vitest integration test suite. |
 
 ## Folder structure
@@ -213,7 +220,8 @@ marketplace-api/
 |   |-- migrations/            # Reproducible schema, RLS, grants, and functions
 |   `-- seeds/                 # Local-only accounts and marketplace sample data
 |-- scripts/
-|   `-- smoke-local.js         # Live local Auth and product CRUD check
+|   |-- smoke-local.js         # Live local Auth and product CRUD check
+|   `-- smoke-products.js      # Disposable seller catalogue workflow check
 |-- .env.example               # Safe host and Docker environment template
 |-- .gitignore                 # Dependencies, secrets, and generated files
 |-- Dockerfile                 # Production Express image definition
@@ -230,7 +238,10 @@ current local data must be preserved.
 ## Current development notes
 
 - The health endpoint verifies only the Express process. Use
-  `npm run smoke:local` to verify Supabase Auth and database-backed products.
+  `npm run smoke:local` to verify seeded Auth/product CRUD, or
+  `npm run smoke:products` to verify seller-owned catalogue discovery and
+  managed image storage. The product smoke test requires at least one seeded
+  category and removes the user, shop, product, and image it creates.
 - Keep route handlers thin as the API grows. Put reusable business logic and
   data access in dedicated `services/` or `repositories/` modules.
 - Validate request data and add centralized error handling before exposing
