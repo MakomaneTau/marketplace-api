@@ -150,6 +150,9 @@ network flow, rebuild/stop commands, ports, and Windows troubleshooting.
 | `DELETE` | `/api/v1/seller/products/:id` | Deletes an owned product and its managed images. |
 | `POST` | `/api/v1/seller/products/:id/images` | Appends one managed public product image. |
 | `DELETE` | `/api/v1/seller/products/:id/images/:index` | Removes one managed product image by ordered index. |
+| `GET` | `/api/v1/favourites` | Lists the authenticated user's currently public saved products. |
+| `PUT` | `/api/v1/favourites/:productId` | Idempotently saves a public product. |
+| `DELETE` | `/api/v1/favourites/:productId` | Removes a saved product. |
 | `GET` | `/api/v1/categories` | Lists categories with public active-product counts. |
 | `GET` | `/api/v1/categories/:slug` | Returns one category by slug. |
 | `GET` | `/api/v1/universities` | Lists searchable universities with campus counts. |
@@ -204,6 +207,7 @@ adding another local or deployed frontend origin.
 | `npm run supabase:lint` | Lint the currently running local database schema. |
 | `npm run smoke:local` | Exercise seeded authentication and product CRUD against running local services. |
 | `npm run smoke:products` | Exercise the live seller catalogue workflow with disposable local records. |
+| `npm run smoke:favourites` | Exercise the catalogue plus idempotent saved-product workflow. |
 | `npm test` | Run the Vitest integration test suite. |
 
 ## Folder structure

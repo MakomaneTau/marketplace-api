@@ -11,6 +11,7 @@ import {
   updateProduct,
 } from "../src/services/products.service.js";
 import { createShop } from "../src/services/shops.service.js";
+import { listFavourites, removeFavourite, saveFavourite } from "../src/services/favourites.service.js";
 
 const runId = randomUUID().slice(0, 8);
 const email = `product-smoke-${runId}@example.test`;
@@ -93,9 +94,17 @@ try {
   assert(publicList.products.some((product) => product.id === productId), "Filtered public listing failed.");
   assert(sellerList.products.some((product) => product.id === productId), "Seller inventory listing failed.");
 
+  await saveFavourite(userId, productId);
+  await saveFavourite(userId, productId);
+  const favourites = await listFavourites(userId, { page: 1, limit: 5 });
+  assert(favourites.products.some((product) => product.id === productId), "Favourite listing failed.");
+  await removeFavourite(userId, productId);
+  const emptyFavourites = await listFavourites(userId, { page: 1, limit: 5 });
+  assert(!emptyFavourites.products.some((product) => product.id === productId), "Favourite removal failed.");
+
   console.log(JSON.stringify({
     status: "ok",
-    checks: ["seller draft", "managed image", "activation", "public filters", "seller inventory"],
+    checks: ["seller draft", "managed image", "activation", "public filters", "seller inventory", "idempotent favourite", "favourite removal"],
   }));
 } finally {
   await cleanup();

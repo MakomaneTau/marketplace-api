@@ -13,7 +13,7 @@ authoritative source for exact code changes.
 | 05 | Complete | `feat/api-05-verification-media` | `01ae9ab` | `d9aeb99`, `a29009e`, `7895cd7`; merge `75d388e` | 44 tests; syntax check; build; zero audit vulnerabilities; database lint; live disposable private upload, read, cleanup | Private bucket, bounded multipart parsing, content signatures, seller verification, and removal of 910 tracked dependency files |
 | 06 | Complete | `feat/api-06-shops` | `75d388e` | `b522450`, `51cde9b`; merge `99fbe1d` | 50 tests; syntax check; build; database lint; live disposable create, update, public read, pickup replacement, logo upload, cleanup | One shop per seller, stable slug, atomic pickup areas, and public logo/banner storage |
 | 07 | Complete | `feat/api-07-products-catalog` | `99fbe1d` | `3379773`, `22c4aa5`, `c3a8bcd`; merge `3a3da4b` | 55 tests; syntax check; build; database lint; live disposable seller draft, managed image upload, activation, public filters, seller inventory, cleanup | Paginated discovery, complete seller inventory routes, and six-image lifecycle |
-| 08 | Pending | `feat/api-08-favourites` | Task 07 | Pending | Pending | Saved products |
+| 08 | Complete | `feat/api-08-favourites` | `e4385fc` | `170e18d`; documentation and merge pending | 60 tests; syntax check; build; live disposable save twice, list, remove, cleanup | Authenticated paginated favourites expose only currently public products |
 | 09 | Pending | `feat/api-09-orders` | Task 08 | Pending | Pending | Transactional orders |
 | 10 | Pending | `feat/api-10-messaging` | Task 09 | Pending | Pending | Messaging and notifications |
 | 11 | Pending | `feat/api-11-reviews` | Task 10 | Pending | Pending | Reviews and reputation |

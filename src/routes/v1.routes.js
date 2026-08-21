@@ -6,6 +6,7 @@ import profileRouter from "./profile.routes.js";
 import verificationRouter from "./verification.routes.js";
 import { publicShopsRouter, sellerShopRouter } from "./shops.routes.js";
 import sellerProductsRouter from "./seller-products.routes.js";
+import favouritesRouter from "./favourites.routes.js";
 
 const v1Router = Router();
 
@@ -17,5 +18,6 @@ v1Router.use("/verifications", verificationRouter);
 v1Router.use("/shops", publicShopsRouter);
 v1Router.use("/seller/shop", sellerShopRouter);
 v1Router.use("/seller/products", sellerProductsRouter);
+v1Router.use("/favourites", favouritesRouter);
 
 export default v1Router;
