@@ -437,6 +437,18 @@ paths:
     get:
       summary: List public shop reviews
       responses: { "200": { description: Paginated review collection } }
+  /api/v1/seller/dashboard:
+    get:
+      summary: Return seller dashboard counters and recent orders
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Seller dashboard }, "403": { description: Seller shop required } }
+  /api/v1/seller/analytics:
+    get:
+      summary: Return revenue, order, view, and top-product analytics
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: query, name: days, schema: { type: integer, enum: [7, 30, 90, 365] } }
+      responses: { "200": { description: Seller analytics }, "403": { description: Seller shop required } }
   /api/v1/categories:
     get:
       summary: List product categories with active product counts
