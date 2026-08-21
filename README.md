@@ -153,6 +153,13 @@ network flow, rebuild/stop commands, ports, and Windows troubleshooting.
 | `GET` | `/api/v1/favourites` | Lists the authenticated user's currently public saved products. |
 | `PUT` | `/api/v1/favourites/:productId` | Idempotently saves a public product. |
 | `DELETE` | `/api/v1/favourites/:productId` | Removes a saved product. |
+| `GET` | `/api/v1/orders` | Lists the authenticated buyer's orders. |
+| `POST` | `/api/v1/orders` | Atomically creates a single-shop order and reserves stock. |
+| `GET` | `/api/v1/orders/:id` | Returns an order to its buyer or seller. |
+| `PATCH` | `/api/v1/orders/:id/status` | Cancels a new buyer order or applies a seller-controlled transition. |
+| `GET` | `/api/v1/seller/orders` | Lists orders placed with the authenticated seller's shop. |
+| `GET` | `/api/v1/seller/orders/:id` | Returns a seller-participating order. |
+| `PATCH` | `/api/v1/seller/orders/:id/status` | Advances or cancels a seller order. |
 | `GET` | `/api/v1/categories` | Lists categories with public active-product counts. |
 | `GET` | `/api/v1/categories/:slug` | Returns one category by slug. |
 | `GET` | `/api/v1/universities` | Lists searchable universities with campus counts. |
@@ -208,6 +215,7 @@ adding another local or deployed frontend origin.
 | `npm run smoke:local` | Exercise seeded authentication and product CRUD against running local services. |
 | `npm run smoke:products` | Exercise the live seller catalogue workflow with disposable local records. |
 | `npm run smoke:favourites` | Exercise the catalogue plus idempotent saved-product workflow. |
+| `npm run smoke:orders` | Validate totals, transitions, and stock changes inside a rolled-back SQL transaction. |
 | `npm test` | Run the Vitest integration test suite. |
 
 ## Folder structure
