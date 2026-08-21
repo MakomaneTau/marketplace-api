@@ -231,6 +231,7 @@ adding another local or deployed frontend origin.
 | `npm run smoke:orders` | Validate totals, transitions, and stock changes inside a rolled-back SQL transaction. |
 | `npm run smoke:messaging` | Validate conversations, messages, and notification creation inside a rollback. |
 | `npm run smoke:settings` | Validate default and persisted settings with a disposable local user. |
+| `npm run acceptance:local` | Run the complete non-destructive Windows API acceptance suite. |
 | `npm test` | Run the Vitest integration test suite. |
 
 ## Folder structure
@@ -269,6 +270,10 @@ current local data must be preserved.
   `npm run smoke:products` to verify seller-owned catalogue discovery and
   managed image storage. The product smoke test requires at least one seeded
   category and removes the user, shop, product, and image it creates.
+- Run `npm run acceptance:local` for the complete API-only readiness check. It
+  requires Docker-backed local Supabase and does not reset the database. See
+  [`docs/API_READINESS_REPORT.md`](docs/API_READINESS_REPORT.md) for scope and
+  the remaining frontend integration boundary.
 - Keep route handlers thin as the API grows. Put reusable business logic and
   data access in dedicated `services/` or `repositories/` modules.
 - Validate request data and add centralized error handling before exposing
