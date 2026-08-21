@@ -5,8 +5,8 @@ authoritative source for exact code changes.
 
 | Task | Status | Branch | Base | Commits | Validation | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| 00 | In progress | `feat/api-web-parity` | `b60f5c0` | Pending | Pending | API-only plan and tracking setup |
-| 01 | Pending | `fix/api-01-local-foundation` | Task 00 | Pending | Pending | No database reset without a destructive-action check |
+| 00 | Complete | `feat/api-web-parity` | `b60f5c0` | `1feb7c4` | Diff check | API-only plan and tracking setup |
+| 01 | Complete | `fix/api-01-local-foundation` | `1feb7c4` | `0049d7d`, `75ab882`, documentation commit | 18 tests; typecheck; build; transactional SQL validation | Full seed sequence produced 25 universities, 79 campuses, 2 users, 1 shop, 12 categories, 2 products, and 1 pickup area before rollback; destructive reset not run |
 | 02 | Pending | `feat/api-02-contract` | Task 01 | Pending | Pending | Versioned contract and shared middleware |
 | 03 | Pending | `feat/api-03-reference-data` | Task 02 | Pending | Pending | Categories, universities, campuses |
 | 04 | Pending | `feat/api-04-auth-accounts` | Task 03 | Pending | Pending | Auth and profiles |

@@ -1,7 +1,8 @@
 # Marketplace API
 
-Express API for the Marketplace application. The service currently exposes a
-health endpoint and includes an admin Supabase client for future data routes.
+Express and Supabase API for the Marketplace application. It currently exposes
+health and authenticated-user endpoints together with public product discovery
+and seller-owned product management.
 
 ## Stack
 
@@ -26,10 +27,11 @@ cd marketplace-api
 npm ci
 ```
 
-### Run the API only
+### Run the API directly on Windows
 
-The health endpoint does not currently access Supabase, so the API can be
-started without a database:
+The application initializes its Supabase clients at startup. Create `.env` with
+the local Supabase URL, publishable key, and server-only secret key before
+starting Express:
 
 ```powershell
 npm run dev
@@ -104,7 +106,7 @@ npm run supabase:stop
 | `CORS_ORIGIN` | No | Allowed browser origin; defaults to `http://localhost:3000`. |
 | `SUPABASE_URL` | For Supabase routes | Local or hosted Supabase project URL. |
 | `SUPABASE_SECRET_KEY` | For Supabase routes | Server-only secret/service-role key used by the admin client. |
-| `SUPABASE_PUBLISHABLE_KEY` | Not yet used | Public/anon key reserved for non-admin Supabase access. |
+| `SUPABASE_PUBLISHABLE_KEY` | Yes | Public key used by the server to validate caller access tokens. |
 | `DATABASE_URL` | Not yet used | Direct PostgreSQL connection string reserved for database tooling or a future SQL client. |
 
 Never expose `SUPABASE_SECRET_KEY` to the browser or commit `.env`. The admin
@@ -136,6 +138,15 @@ network flow, rebuild/stop commands, ports, and Windows troubleshooting.
 | Method | Path | Description |
 | --- | --- | --- |
 | `GET` | `/api/health` | Confirms that the Express process is running. |
+| `GET` | `/api/auth/me` | Returns the Supabase user for a valid bearer access token. |
+| `GET` | `/api/products` | Lists active products belonging to open shops. |
+| `GET` | `/api/products/:id` | Returns one publicly visible product. |
+| `POST` | `/api/products` | Creates a product for an authenticated seller's shop. |
+| `PATCH` | `/api/products/:id` | Updates an authenticated seller-owned product. |
+| `DELETE` | `/api/products/:id` | Deletes an authenticated seller-owned product. |
+
+Protected endpoints require `Authorization: Bearer <Supabase access token>`.
+The product write endpoints also verify the seller role and shop ownership.
 
 JSON request bodies are enabled. CORS currently accepts credentialed requests
 only from `http://localhost:3000`; update the allow-list in `src/app.js` when
@@ -152,6 +163,8 @@ adding another local or deployed frontend origin.
 | `npm run supabase:status` | Show local service URLs and credentials. |
 | `npm run supabase:stop` | Stop the local Supabase stack. |
 | `npm run supabase:reset` | Recreate the local database and apply migrations/seed data. |
+| `npm run supabase:lint` | Lint the currently running local database schema. |
+| `npm run smoke:local` | Exercise seeded authentication and product CRUD against running local services. |
 | `npm test` | Run the Vitest integration test suite. |
 
 ## Folder structure
@@ -164,7 +177,11 @@ marketplace-api/
 |   `-- config/
 |       `-- supabase.js        # Validated server-side Supabase admin client
 |-- supabase/
-|   `-- config.toml            # Local Supabase services and port configuration
+|   |-- config.toml            # Local Supabase services and ordered seeds
+|   |-- migrations/            # Reproducible schema, RLS, grants, and functions
+|   `-- seeds/                 # Local-only accounts and marketplace sample data
+|-- scripts/
+|   `-- smoke-local.js         # Live local Auth and product CRUD check
 |-- .env.example               # Safe host and Docker environment template
 |-- .gitignore                 # Dependencies, secrets, and generated files
 |-- Dockerfile                 # Production Express image definition
@@ -174,14 +191,14 @@ marketplace-api/
 `-- README.Docker.md            # Docker Desktop for Windows runbook
 ```
 
-There are currently no Supabase migrations or seed file in the repository.
-Add schema changes under `supabase/migrations/` before relying on
-`npm run supabase:reset` to reproduce a database.
+`npm run supabase:reset` replaces all current local rows, reapplies the ordered
+migrations, and imports the configured local seeds. Do not run it when the
+current local data must be preserved.
 
 ## Current development notes
 
-- `src/config/supabase.js` is ready for server-side use but is not yet imported
-  by `src/app.js`; the current health route therefore does not test the database.
+- The health endpoint verifies only the Express process. Use
+  `npm run smoke:local` to verify Supabase Auth and database-backed products.
 - Keep route handlers thin as the API grows. Put reusable business logic and
   data access in dedicated `services/` or `repositories/` modules.
 - Validate request data and add centralized error handling before exposing
