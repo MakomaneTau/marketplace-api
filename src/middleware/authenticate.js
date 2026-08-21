@@ -1,13 +1,9 @@
 import { getUserFromAccessToken } from "../services/auth.service.js";
 import { parseBearerToken } from "../validators/auth.validator.js";
+import { sendError } from "../http/responses.js";
 
 function sendUnauthorized(res, code, message) {
-  return res.status(401).json({
-    error: {
-      code,
-      message,
-    },
-  });
+  return sendError(res, { status: 401, code, message });
 }
 
 export async function authenticate(req, res, next) {
@@ -45,11 +41,10 @@ export async function authenticate(req, res, next) {
     req.user = user;
     return next();
   } catch {
-    return res.status(503).json({
-      error: {
-        code: "AUTH_SERVICE_UNAVAILABLE",
-        message: "Authentication is temporarily unavailable.",
-      },
+    return sendError(res, {
+      status: 503,
+      code: "AUTH_SERVICE_UNAVAILABLE",
+      message: "Authentication is temporarily unavailable.",
     });
   }
 }
