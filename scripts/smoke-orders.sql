@@ -34,6 +34,8 @@ declare
   current_stock integer;
   current_status text;
   current_total numeric;
+  review_id uuid;
+  shop_rating numeric;
 begin
   first_order := public.create_marketplace_order(
     '90000000-0000-4000-8000-000000000002',
@@ -45,6 +47,9 @@ begin
   perform public.transition_marketplace_order(first_order, '90000000-0000-4000-8000-000000000001', 'preparing');
   perform public.transition_marketplace_order(first_order, '90000000-0000-4000-8000-000000000001', 'ready');
   perform public.transition_marketplace_order(first_order, '90000000-0000-4000-8000-000000000001', 'completed');
+  review_id := public.submit_marketplace_review(first_order, '90000000-0000-4000-8000-000000000005', '90000000-0000-4000-8000-000000000002', 5, 'Excellent smoke-test seller and product.');
+  select rating into shop_rating from public.shops where id = '90000000-0000-4000-8000-000000000004';
+  if review_id is null or shop_rating <> 5 then raise exception 'ORDER_REVIEW_REPUTATION_ASSERTION_FAILED'; end if;
 
   second_order := public.create_marketplace_order(
     '90000000-0000-4000-8000-000000000002',
@@ -56,7 +61,7 @@ begin
   perform public.transition_marketplace_order(second_order, '90000000-0000-4000-8000-000000000002', 'cancelled');
   select stock_quantity, status into current_stock, current_status from public.products where id = '90000000-0000-4000-8000-000000000005';
   if current_stock <> 1 or current_status <> 'active' then raise exception 'ORDER_STOCK_RESTORE_ASSERTION_FAILED'; end if;
-  raise notice 'order smoke passed: totals, seller transitions, stock decrement, buyer cancellation, stock restore';
+  raise notice 'order smoke passed: totals, transitions, review reputation, stock decrement, cancellation, stock restore';
 end;
 $$;
 
