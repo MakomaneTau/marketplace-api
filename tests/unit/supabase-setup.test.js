@@ -9,15 +9,25 @@ function read(relativePath) {
 }
 
 describe("local Supabase setup", () => {
-  it("references existing seed files in dependency order", () => {
+  it("keeps deployment reference data in migrations and local fixtures ordered", () => {
     const config = read("supabase/config.toml");
+    const universityMigration = read(
+      "supabase/migrations/20260821001000_seed_public_universities.sql"
+    );
     const expectedPaths = [
-      "./seeds/05_universities.sql",
       "./seeds/01_users.sql",
       "./seeds/02_shops.sql",
       "./seeds/03_categories.sql",
       "./seeds/04_products.sql",
     ];
+
+    expect(config).not.toContain('"./seeds/05_universities.sql"');
+    expect(universityMigration).toContain("insert into public.universities");
+    expect(universityMigration).toContain("insert into public.campuses");
+    expect(universityMigration).toContain("on conflict (slug) do update");
+    expect(universityMigration).toContain(
+      "on conflict (university_id, name) do update"
+    );
 
     let previousIndex = -1;
     for (const seedPath of expectedPaths) {
