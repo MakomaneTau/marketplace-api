@@ -385,6 +385,45 @@ paths:
       responses:
         "200": { description: Order transitioned }
         "409": { description: Invalid transition }
+  /api/v1/conversations:
+    get:
+      summary: List participant conversations with unread metadata
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Conversation collection } }
+    post:
+      summary: Idempotently start a public-product conversation
+      security: [{ bearerAuth: [] }]
+      responses: { "201": { description: Conversation ready }, "404": { description: Product not found } }
+  /api/v1/conversations/{id}:
+    get:
+      summary: Return a participant-scoped conversation and messages
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Conversation found }, "403": { description: Participant required } }
+  /api/v1/conversations/{id}/messages:
+    post:
+      summary: Send a message and atomically notify its recipient
+      security: [{ bearerAuth: [] }]
+      responses: { "201": { description: Message sent }, "403": { description: Participant required } }
+  /api/v1/conversations/{id}/read:
+    patch:
+      summary: Mark incoming messages read
+      security: [{ bearerAuth: [] }]
+      responses: { "204": { description: Messages marked read } }
+  /api/v1/notifications:
+    get:
+      summary: List owned notifications with unread filtering
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Notification collection } }
+  /api/v1/notifications/{id}/read:
+    patch:
+      summary: Mark one owned notification read
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Notification marked read } }
+  /api/v1/notifications/read-all:
+    patch:
+      summary: Mark all owned notifications read
+      security: [{ bearerAuth: [] }]
+      responses: { "204": { description: Notifications marked read } }
   /api/v1/categories:
     get:
       summary: List product categories with active product counts

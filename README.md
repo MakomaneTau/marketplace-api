@@ -160,6 +160,13 @@ network flow, rebuild/stop commands, ports, and Windows troubleshooting.
 | `GET` | `/api/v1/seller/orders` | Lists orders placed with the authenticated seller's shop. |
 | `GET` | `/api/v1/seller/orders/:id` | Returns a seller-participating order. |
 | `PATCH` | `/api/v1/seller/orders/:id/status` | Advances or cancels a seller order. |
+| `GET/POST` | `/api/v1/conversations` | Lists conversations or starts an idempotent product conversation. |
+| `GET` | `/api/v1/conversations/:id` | Returns a participant-scoped conversation and messages. |
+| `POST` | `/api/v1/conversations/:id/messages` | Sends a message and notifies the other participant. |
+| `PATCH` | `/api/v1/conversations/:id/read` | Marks incoming conversation messages read. |
+| `GET` | `/api/v1/notifications` | Lists authenticated user notifications with unread filtering. |
+| `PATCH` | `/api/v1/notifications/:id/read` | Marks one owned notification read. |
+| `PATCH` | `/api/v1/notifications/read-all` | Marks all owned notifications read. |
 | `GET` | `/api/v1/categories` | Lists categories with public active-product counts. |
 | `GET` | `/api/v1/categories/:slug` | Returns one category by slug. |
 | `GET` | `/api/v1/universities` | Lists searchable universities with campus counts. |
@@ -216,6 +223,7 @@ adding another local or deployed frontend origin.
 | `npm run smoke:products` | Exercise the live seller catalogue workflow with disposable local records. |
 | `npm run smoke:favourites` | Exercise the catalogue plus idempotent saved-product workflow. |
 | `npm run smoke:orders` | Validate totals, transitions, and stock changes inside a rolled-back SQL transaction. |
+| `npm run smoke:messaging` | Validate conversations, messages, and notification creation inside a rollback. |
 | `npm test` | Run the Vitest integration test suite. |
 
 ## Folder structure
