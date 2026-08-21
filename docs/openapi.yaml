@@ -449,6 +449,15 @@ paths:
       parameters:
         - { in: query, name: days, schema: { type: integer, enum: [7, 30, 90, 365] } }
       responses: { "200": { description: Seller analytics }, "403": { description: Seller shop required } }
+  /api/v1/settings:
+    get:
+      summary: Return authenticated notification preferences
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: User preferences } }
+    patch:
+      summary: Update the supported boolean notification preferences
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Updated preferences }, "400": { $ref: "#/components/responses/ValidationError" } }
   /api/v1/categories:
     get:
       summary: List product categories with active product counts

@@ -11,6 +11,7 @@ import { ordersRouter, sellerOrdersRouter } from "./orders.routes.js";
 import { conversationsRouter, notificationsRouter } from "./messaging.routes.js";
 import { reviewsRouter } from "./reviews.routes.js";
 import insightsRouter from "./insights.routes.js";
+import settingsRouter from "./settings.routes.js";
 
 const v1Router = Router();
 
@@ -29,5 +30,6 @@ v1Router.use("/conversations", conversationsRouter);
 v1Router.use("/notifications", notificationsRouter);
 v1Router.use(reviewsRouter);
 v1Router.use("/seller", insightsRouter);
+v1Router.use("/settings", settingsRouter);
 
 export default v1Router;

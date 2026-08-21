@@ -1,0 +1,1 @@
+import{Router}from"express";import{authenticate}from"../middleware/authenticate.js";import{getSettings,updateSettings}from"../controllers/settings.controller.js";const r=Router();r.use(authenticate);r.get("/",getSettings);r.patch("/",updateSettings);export default r;
