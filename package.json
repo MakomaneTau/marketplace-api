@@ -12,6 +12,7 @@
     "typecheck": "node scripts/check-syntax.js",
     "build": "npm run typecheck",
     "smoke:local": "node scripts/smoke-local.js",
+    "smoke:products": "node scripts/smoke-products.js",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",

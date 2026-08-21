@@ -82,3 +82,11 @@ export async function uploadPublicImage({ bucket, ownerId, scopeId, label, file 
   const { data } = supabaseAdmin.storage.from(bucket).getPublicUrl(path);
   return { path, publicUrl: data.publicUrl };
 }
+
+export function publicStoragePath(publicUrl, bucket) {
+  const marker = `/storage/v1/object/public/${bucket}/`;
+  const index = publicUrl?.indexOf(marker);
+  return index === -1 || index === undefined
+    ? null
+    : decodeURIComponent(publicUrl.slice(index + marker.length));
+}
