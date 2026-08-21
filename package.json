@@ -14,6 +14,7 @@
     "smoke:local": "node scripts/smoke-local.js",
     "smoke:products": "node scripts/smoke-products.js",
     "smoke:favourites": "node scripts/smoke-products.js",
+    "smoke:orders": "docker exec -i supabase_db_marketplace-api psql -U postgres -d postgres < scripts/smoke-orders.sql",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",
