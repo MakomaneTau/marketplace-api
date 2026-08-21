@@ -81,6 +81,33 @@ paths:
       responses:
         "200": { description: Marketplace profile }
         "401": { $ref: "#/components/responses/Unauthorized" }
+  /api/v1/verifications/seller:
+    get:
+      summary: Return the seller's latest verification state
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Verification state or null }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { description: Seller account required }
+    post:
+      summary: Submit private seller verification images
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [selfie, sellerId]
+              properties:
+                selfie: { type: string, format: binary }
+                sellerId: { type: string, format: binary }
+      responses:
+        "201": { description: Verification submitted }
+        "400": { description: Missing, unsupported, oversized, or invalid image }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { description: Seller account required }
+        "409": { description: Verification is already pending }
     patch:
       summary: Update user-managed profile fields
       security: [{ bearerAuth: [] }]

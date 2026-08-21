@@ -12,6 +12,17 @@ export function errorHandler(error, req, res, next) {
     });
   }
 
+  if (error?.name === "MulterError" || error?.code === "UNSUPPORTED_IMAGE_TYPE") {
+    const fileTooLarge = error.code === "LIMIT_FILE_SIZE";
+    return sendError(res, {
+      status: 400,
+      code: fileTooLarge ? "IMAGE_TOO_LARGE" : "IMAGE_UPLOAD_INVALID",
+      message: fileTooLarge
+        ? "Each image must be no larger than 5 MB."
+        : error.message || "The image upload is invalid.",
+    });
+  }
+
   if (error instanceof ApiError) {
     return sendError(res, {
       status: error.status,
