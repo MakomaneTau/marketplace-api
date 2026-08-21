@@ -76,3 +76,9 @@ export async function removePrivateImages(bucket, paths) {
     );
   }
 }
+
+export async function uploadPublicImage({ bucket, ownerId, scopeId, label, file }) {
+  const path = await uploadPrivateImage({ bucket, ownerId, scopeId, label, file });
+  const { data } = supabaseAdmin.storage.from(bucket).getPublicUrl(path);
+  return { path, publicUrl: data.publicUrl };
+}
