@@ -17,6 +17,7 @@
     "smoke:orders": "docker exec -i supabase_db_marketplace-api psql -U postgres -d postgres < scripts/smoke-orders.sql",
     "smoke:messaging": "docker exec -i supabase_db_marketplace-api psql -U postgres -d postgres < scripts/smoke-messaging.sql",
     "smoke:settings": "node scripts/smoke-settings.js",
+    "acceptance:local": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/acceptance-local.ps1",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",
