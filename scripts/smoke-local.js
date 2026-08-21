@@ -66,7 +66,7 @@ try {
   const health = await request(`${apiUrl}/api/health`);
   if (health?.status !== "ok") throw new Error("The API health response is invalid.");
 
-  const publicProducts = await request(`${apiUrl}/api/products`);
+  const publicProducts = await request(`${apiUrl}/api/v1/products`);
   if (!Array.isArray(publicProducts?.data)) {
     throw new Error("The public products response does not contain a data array.");
   }
@@ -74,7 +74,7 @@ try {
   sellerToken = await signIn("seller@example.com");
   const buyerToken = await signIn("buyer@example.com");
 
-  const me = await request(`${apiUrl}/api/auth/me`, {
+  const me = await request(`${apiUrl}/api/v1/auth/me`, {
     headers: bearer(sellerToken),
   });
   if (me?.data?.user?.email !== "seller@example.com") {
@@ -105,7 +105,7 @@ try {
   };
 
   await request(
-    `${apiUrl}/api/products`,
+    `${apiUrl}/api/v1/products`,
     {
       method: "POST",
       headers: bearer(buyerToken),
@@ -115,7 +115,7 @@ try {
   );
 
   const created = await request(
-    `${apiUrl}/api/products`,
+    `${apiUrl}/api/v1/products`,
     {
       method: "POST",
       headers: bearer(sellerToken),
@@ -126,14 +126,14 @@ try {
   createdProductId = created?.data?.id;
   if (!createdProductId) throw new Error("Product creation returned no product ID.");
 
-  await request(`${apiUrl}/api/products/${createdProductId}`, {
+  await request(`${apiUrl}/api/v1/products/${createdProductId}`, {
     method: "PATCH",
     headers: bearer(sellerToken),
     body: JSON.stringify({ price: 125 }),
   });
 
   await request(
-    `${apiUrl}/api/products/${createdProductId}`,
+    `${apiUrl}/api/v1/products/${createdProductId}`,
     { method: "DELETE", headers: bearer(sellerToken) },
     204
   );
@@ -142,7 +142,7 @@ try {
   console.log("Local API smoke test passed.");
 } finally {
   if (createdProductId && sellerToken) {
-    await fetch(`${apiUrl}/api/products/${createdProductId}`, {
+    await fetch(`${apiUrl}/api/v1/products/${createdProductId}`, {
       method: "DELETE",
       headers: bearer(sellerToken),
     }).catch(() => undefined);
