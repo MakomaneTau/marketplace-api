@@ -16,7 +16,7 @@ authoritative source for exact code changes.
 | 08 | Complete | `feat/api-08-favourites` | `e4385fc` | `170e18d`, `5738463`; merge `61ac2b2` | 60 tests; syntax check; build; live disposable save twice, list, remove, cleanup | Authenticated paginated favourites expose only currently public products |
 | 09 | Complete | `feat/api-09-orders` | `33fb60d` | `cbb9860`, `80dabd5`; merge `b89ba85` | 67 tests; syntax check; build; database lint; rollback-based totals, seller transitions, stock decrement, buyer cancellation, stock restore; live service-role query | Atomic single-shop checkout, immutable price snapshots, participant reads, and controlled lifecycle |
 | 10 | Complete | `feat/api-10-messaging` | `2b7a609` | `c6a1888`, `bc5b7ac`; merge `1bc436a` | 73 tests; syntax check; build; database lint; rollback-based idempotent conversation, message, notification | Participant conversations, unread state, message notifications, and order notifications |
-| 11 | Pending | `feat/api-11-reviews` | Task 10 | Pending | Pending | Reviews and reputation |
+| 11 | Complete | `feat/api-11-reviews` | `4b746dc` | implementation and documentation pending commit | 76 tests; syntax check; build; database lint; rollback-based completed-order review and reputation refresh | One review per order product, public review lists, derived shop/seller reputation, seller notification |
 | 12 | Pending | `feat/api-12-seller-insights` | Task 11 | Pending | Pending | Dashboard and analytics |
 | 13 | Pending | `feat/api-13-settings-hardening` | Task 12 | Pending | Pending | Preferences and hardening |
 | 14 | Pending | `test/api-14-acceptance` | Task 13 | Pending | Pending | API-only acceptance |

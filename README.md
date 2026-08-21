@@ -167,6 +167,9 @@ network flow, rebuild/stop commands, ports, and Windows troubleshooting.
 | `GET` | `/api/v1/notifications` | Lists authenticated user notifications with unread filtering. |
 | `PATCH` | `/api/v1/notifications/:id/read` | Marks one owned notification read. |
 | `PATCH` | `/api/v1/notifications/read-all` | Marks all owned notifications read. |
+| `POST` | `/api/v1/orders/:id/reviews` | Creates one verified review per completed-order product. |
+| `GET` | `/api/v1/products/:id/reviews` | Lists public reviews for a product. |
+| `GET` | `/api/v1/shops/:slug/reviews` | Lists public reviews for a shop. |
 | `GET` | `/api/v1/categories` | Lists categories with public active-product counts. |
 | `GET` | `/api/v1/categories/:slug` | Returns one category by slug. |
 | `GET` | `/api/v1/universities` | Lists searchable universities with campus counts. |
