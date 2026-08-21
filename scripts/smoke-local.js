@@ -67,8 +67,8 @@ try {
   if (health?.status !== "ok") throw new Error("The API health response is invalid.");
 
   const publicProducts = await request(`${apiUrl}/api/products`);
-  if (!Array.isArray(publicProducts?.products)) {
-    throw new Error("The public products response does not contain a products array.");
+  if (!Array.isArray(publicProducts?.data)) {
+    throw new Error("The public products response does not contain a data array.");
   }
 
   sellerToken = await signIn("seller@example.com");
@@ -77,7 +77,7 @@ try {
   const me = await request(`${apiUrl}/api/auth/me`, {
     headers: bearer(sellerToken),
   });
-  if (me?.user?.email !== "seller@example.com") {
+  if (me?.data?.user?.email !== "seller@example.com") {
     throw new Error("The authenticated user response does not match the seller.");
   }
 
@@ -123,7 +123,7 @@ try {
     },
     201
   );
-  createdProductId = created?.product?.id;
+  createdProductId = created?.data?.id;
   if (!createdProductId) throw new Error("Product creation returned no product ID.");
 
   await request(`${apiUrl}/api/products/${createdProductId}`, {

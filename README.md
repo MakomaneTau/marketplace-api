@@ -138,15 +138,22 @@ network flow, rebuild/stop commands, ports, and Windows troubleshooting.
 | Method | Path | Description |
 | --- | --- | --- |
 | `GET` | `/api/health` | Confirms that the Express process is running. |
-| `GET` | `/api/auth/me` | Returns the Supabase user for a valid bearer access token. |
-| `GET` | `/api/products` | Lists active products belonging to open shops. |
-| `GET` | `/api/products/:id` | Returns one publicly visible product. |
-| `POST` | `/api/products` | Creates a product for an authenticated seller's shop. |
-| `PATCH` | `/api/products/:id` | Updates an authenticated seller-owned product. |
-| `DELETE` | `/api/products/:id` | Deletes an authenticated seller-owned product. |
+| `GET` | `/api/v1/auth/me` | Returns the Supabase user for a valid bearer access token. |
+| `GET` | `/api/v1/products` | Lists active products belonging to open shops. |
+| `GET` | `/api/v1/products/:id` | Returns one publicly visible product. |
+| `POST` | `/api/v1/products` | Creates a product for an authenticated seller's shop. |
+| `PATCH` | `/api/v1/products/:id` | Updates an authenticated seller-owned product. |
+| `DELETE` | `/api/v1/products/:id` | Deletes an authenticated seller-owned product. |
 
 Protected endpoints require `Authorization: Bearer <Supabase access token>`.
 The product write endpoints also verify the seller role and shop ownership.
+The former unversioned auth and product paths remain temporary compatibility
+aliases. New consumers should use `/api/v1`.
+
+Successful versioned responses use a top-level `data` member. Errors use an
+`error` object with a stable code, message, and request ID. The same request ID
+is returned in the `X-Request-Id` response header. See
+[`docs/openapi.yaml`](docs/openapi.yaml) for the machine-readable contract.
 
 JSON request bodies are enabled. CORS currently accepts credentialed requests
 only from `http://localhost:3000`; update the allow-list in `src/app.js` when

@@ -64,7 +64,7 @@ describe("products API", () => {
     const response = await request(app).get("/api/products");
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ products: [product] });
+    expect(response.body).toEqual({ data: [product] });
     expect(productsService.listProducts).toHaveBeenCalledOnce();
     expect(getUserFromAccessToken).not.toHaveBeenCalled();
   });
@@ -75,7 +75,7 @@ describe("products API", () => {
     const response = await request(app).get(`/api/products/${PRODUCT_ID}`);
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ product });
+    expect(response.body).toEqual({ data: product });
     expect(productsService.getProduct).toHaveBeenCalledWith(PRODUCT_ID);
   });
 
@@ -110,7 +110,7 @@ describe("products API", () => {
       .send(input);
 
     expect(response.status).toBe(201);
-    expect(response.body).toEqual({ product });
+    expect(response.body).toEqual({ data: product });
     expect(productsService.createProduct).toHaveBeenCalledWith(input, SELLER.id);
   });
 
@@ -141,7 +141,7 @@ describe("products API", () => {
       .send({ price: 225 });
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ product: updated });
+    expect(response.body).toEqual({ data: updated });
     expect(productsService.updateProduct).toHaveBeenCalledWith(PRODUCT_ID, { price: 225 }, SELLER.id);
   });
 

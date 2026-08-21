@@ -9,6 +9,7 @@ import { getUserFromAccessToken } from "../../src/services/auth.service.js";
 
 function createResponse() {
   return {
+    locals: {},
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
   };

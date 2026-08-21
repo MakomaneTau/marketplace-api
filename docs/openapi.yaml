@@ -1,0 +1,116 @@
+openapi: 3.1.0
+info:
+  title: Marketplace API
+  version: 1.0.0
+  description: API contract implemented independently from the marketplace web client.
+servers:
+  - url: http://localhost:4000
+    description: Local Express server
+paths:
+  /api/health:
+    get:
+      summary: Check the Express process
+      responses:
+        "200":
+          description: Express is running
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, service]
+                properties:
+                  status: { type: string, const: ok }
+                  service: { type: string, const: marketplace-api }
+  /api/v1/auth/me:
+    get:
+      summary: Return the authenticated Supabase user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Authenticated user
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v1/products:
+    get:
+      summary: List publicly visible products
+      responses:
+        "200":
+          description: Product collection
+    post:
+      summary: Create a product in an owned seller shop
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Product created
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Seller role or shop ownership required
+  /api/v1/products/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: Return a publicly visible product
+      responses:
+        "200": { description: Product found }
+        "404": { description: Product not found }
+    patch:
+      summary: Update an owned product
+      security:
+        - bearerAuth: []
+      responses:
+        "200": { description: Product updated }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { description: Seller role or shop ownership required }
+        "404": { description: Product not found }
+    delete:
+      summary: Delete an owned product
+      security:
+        - bearerAuth: []
+      responses:
+        "204": { description: Product deleted }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { description: Seller role or shop ownership required }
+        "404": { description: Product not found }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Unauthorized:
+      description: Missing, malformed, invalid, or expired access token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, request_id]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            request_id: { type: string }
+            details:
+              type: array
+              items: { type: object }
