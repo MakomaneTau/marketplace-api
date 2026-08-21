@@ -170,6 +170,8 @@ network flow, rebuild/stop commands, ports, and Windows troubleshooting.
 | `POST` | `/api/v1/orders/:id/reviews` | Creates one verified review per completed-order product. |
 | `GET` | `/api/v1/products/:id/reviews` | Lists public reviews for a product. |
 | `GET` | `/api/v1/shops/:slug/reviews` | Lists public reviews for a shop. |
+| `GET` | `/api/v1/seller/dashboard` | Returns seller inventory, order, view, unread, and recent-order summaries. |
+| `GET` | `/api/v1/seller/analytics` | Returns revenue and product analytics for supported time windows. |
 | `GET` | `/api/v1/categories` | Lists categories with public active-product counts. |
 | `GET` | `/api/v1/categories/:slug` | Returns one category by slug. |
 | `GET` | `/api/v1/universities` | Lists searchable universities with campus counts. |
