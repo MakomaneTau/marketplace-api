@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { supabaseAdmin } from "../config/supabase.js";
-import { removePrivateImages, uploadPublicImage } from "./storage.service.js";
+import { publicStoragePath, removePrivateImages, uploadPublicImage } from "./storage.service.js";
 
 const BUCKET = "marketplace-images";
 const SHOP_SELECT = `
@@ -93,17 +93,11 @@ export async function replacePickupAreas(userId, campusIds) {
   return getSellerShop(userId);
 }
 
-function storedPath(publicUrl) {
-  const marker = `/storage/v1/object/public/${BUCKET}/`;
-  const index = publicUrl?.indexOf(marker);
-  return index === -1 || index === undefined ? null : decodeURIComponent(publicUrl.slice(index + marker.length));
-}
-
 export async function updateShopImage(userId, kind, file) {
   const shop = await getSellerShop(userId);
   if (!shop) throw new ShopServiceError(404, "SHOP_NOT_FOUND", "Shop not found.");
   const field = kind === "logo" ? "logo_url" : "banner_url";
-  const previousPath = storedPath(shop[field]);
+  const previousPath = publicStoragePath(shop[field], BUCKET);
   const uploaded = await uploadPublicImage({ bucket: BUCKET, ownerId: userId, scopeId: shop.id, label: kind, file });
   const { data, error } = await supabaseAdmin.from("shops").update({ [field]: uploaded.publicUrl }).eq("id", shop.id).select(SHOP_SELECT).single();
   if (error) {

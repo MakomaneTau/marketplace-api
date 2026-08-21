@@ -20,6 +20,10 @@ vi.mock("../../src/services/products.service.js", () => {
     createProduct: vi.fn(),
     updateProduct: vi.fn(),
     deleteProduct: vi.fn(),
+    listSellerProducts: vi.fn(),
+    createSellerProduct: vi.fn(),
+    addProductImage: vi.fn(),
+    removeProductImage: vi.fn(),
   };
 });
 
@@ -59,13 +63,21 @@ describe("products API", () => {
   });
 
   it("lets public users list active products", async () => {
-    productsService.listProducts.mockResolvedValue([product]);
+    productsService.listProducts.mockResolvedValue({
+      products: [product], page: 1, limit: 24, total: 1, totalPages: 1,
+    });
 
     const response = await request(app).get("/api/products");
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ data: [product] });
-    expect(productsService.listProducts).toHaveBeenCalledOnce();
+    expect(response.body).toEqual({
+      data: [product],
+      meta: { page: 1, limit: 24, total: 1, totalPages: 1 },
+    });
+    expect(productsService.listProducts).toHaveBeenCalledWith({
+      q: undefined, category: undefined, condition: undefined, sort: undefined,
+      page: 1, limit: 24,
+    });
     expect(getUserFromAccessToken).not.toHaveBeenCalled();
   });
 
@@ -188,5 +200,83 @@ describe("products API", () => {
     expect(response.status).toBe(204);
     expect(response.body).toEqual({});
     expect(productsService.deleteProduct).toHaveBeenCalledWith(PRODUCT_ID, SELLER.id);
+  });
+
+  it("lists authenticated seller inventory with status filtering", async () => {
+    authenticateSeller();
+    productsService.listSellerProducts.mockResolvedValue({
+      products: [product], page: 1, limit: 10, total: 1, totalPages: 1,
+    });
+
+    const response = await request(app)
+      .get("/api/v1/seller/products?status=active&limit=10")
+      .set("Authorization", "Bearer seller-token");
+
+    expect(response.status).toBe(200);
+    expect(response.body.meta.total).toBe(1);
+    expect(productsService.listSellerProducts).toHaveBeenCalledWith(
+      SELLER.id,
+      expect.objectContaining({ status: "active", limit: 10 })
+    );
+  });
+
+  it("creates a product using the authenticated seller's shop", async () => {
+    authenticateSeller();
+    const input = { ...product };
+    delete input.id;
+    delete input.shop_id;
+    delete input.image_urls;
+    input.status = "draft";
+    productsService.createSellerProduct.mockResolvedValue(product);
+
+    const response = await request(app)
+      .post("/api/v1/seller/products")
+      .set("Authorization", "Bearer seller-token")
+      .send(input);
+
+    expect(response.status).toBe(201);
+    expect(productsService.createSellerProduct).toHaveBeenCalledWith(input, SELLER.id);
+  });
+
+  it("rejects client-managed product image URLs", async () => {
+    authenticateSeller();
+    const response = await request(app)
+      .post("/api/v1/seller/products")
+      .set("Authorization", "Bearer seller-token")
+      .send({ ...product, shop_id: undefined, image_urls: ["https://example.com/unmanaged.jpg"] });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.details).toContainEqual({ field: "image_urls", message: "is managed by the API" });
+    expect(productsService.createSellerProduct).not.toHaveBeenCalled();
+  });
+
+  it("uploads a content-checked product image", async () => {
+    authenticateSeller();
+    productsService.addProductImage.mockResolvedValue({ ...product, image_urls: ["https://local.test/book.png"] });
+    const png = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 0]);
+
+    const response = await request(app)
+      .post(`/api/v1/seller/products/${PRODUCT_ID}/images`)
+      .set("Authorization", "Bearer seller-token")
+      .attach("image", png, { filename: "book.png", contentType: "image/png" });
+
+    expect(response.status).toBe(200);
+    expect(productsService.addProductImage).toHaveBeenCalledWith(
+      PRODUCT_ID,
+      SELLER.id,
+      expect.objectContaining({ mimetype: "image/png" })
+    );
+  });
+
+  it("removes an owned product image by index", async () => {
+    authenticateSeller();
+    productsService.removeProductImage.mockResolvedValue({ ...product, image_urls: [] });
+
+    const response = await request(app)
+      .delete(`/api/v1/seller/products/${PRODUCT_ID}/images/0`)
+      .set("Authorization", "Bearer seller-token");
+
+    expect(response.status).toBe(200);
+    expect(productsService.removeProductImage).toHaveBeenCalledWith(PRODUCT_ID, 0, SELLER.id);
   });
 });

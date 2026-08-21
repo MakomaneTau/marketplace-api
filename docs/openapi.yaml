@@ -161,9 +161,16 @@ paths:
   /api/v1/products:
     get:
       summary: List publicly visible products
+      parameters:
+        - { in: query, name: q, schema: { type: string, maxLength: 100 } }
+        - { in: query, name: category, schema: { type: string } }
+        - { in: query, name: condition, schema: { type: string, enum: [new, like_new, good, fair] } }
+        - { in: query, name: sort, schema: { type: string, enum: [newest, price_asc, price_desc, most_viewed] } }
+        - { in: query, name: page, schema: { type: integer, minimum: 1 } }
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100 } }
       responses:
         "200":
-          description: Product collection
+          description: Paginated product collection with page metadata
     post:
       summary: Create a product in an owned seller shop
       security:
@@ -207,6 +214,90 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { description: Seller role or shop ownership required }
         "404": { description: Product not found }
+  /api/v1/seller/products:
+    get:
+      summary: List the authenticated seller's complete inventory
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: query, name: status, schema: { type: string, enum: [draft, active, sold, paused] } }
+        - { in: query, name: q, schema: { type: string, maxLength: 100 } }
+        - { in: query, name: category, schema: { type: string } }
+        - { in: query, name: condition, schema: { type: string, enum: [new, like_new, good, fair] } }
+        - { in: query, name: sort, schema: { type: string, enum: [newest, price_asc, price_desc, most_viewed] } }
+        - { in: query, name: page, schema: { type: integer, minimum: 1 } }
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100 } }
+      responses:
+        "200": { description: Paginated seller inventory }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { description: Seller role required }
+    post:
+      summary: Create a draft product in the authenticated seller's shop
+      security: [{ bearerAuth: [] }]
+      responses:
+        "201": { description: Product created }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { description: Seller shop not found }
+  /api/v1/seller/products/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      summary: Update an owned product without bypassing managed images
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Product updated }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { description: Product not found }
+    delete:
+      summary: Delete an owned product and its managed images
+      security: [{ bearerAuth: [] }]
+      responses:
+        "204": { description: Product deleted }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { description: Product not found }
+  /api/v1/seller/products/{id}/images:
+    post:
+      summary: Append one managed public product image
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image: { type: string, format: binary }
+      responses:
+        "200": { description: Product with appended image }
+        "400": { description: Invalid image content or upload }
+        "409": { description: Six-image limit reached }
+  /api/v1/seller/products/{id}/images/{index}:
+    delete:
+      summary: Remove a managed product image by ordered index
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: index
+          required: true
+          schema: { type: integer, minimum: 0, maximum: 5 }
+      responses:
+        "200": { description: Product with the image removed }
+        "404": { description: Product or image not found }
+        "409": { description: Active product must retain an image }
   /api/v1/categories:
     get:
       summary: List product categories with active product counts

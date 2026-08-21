@@ -1,6 +1,7 @@
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const CONDITIONS = new Set(["new", "like_new", "good", "fair"]);
 const STATUSES = new Set(["draft", "active", "sold", "paused"]);
+const SORTS = new Set(["newest", "price_asc", "price_desc", "most_viewed"]);
 
 const CREATE_FIELDS = new Set([
   "shop_id",
@@ -117,6 +118,27 @@ export function validateUpdateProduct(input) {
   validateFields(input, UPDATE_FIELDS, errors);
   if (input.allows_campus_pickup === false && input.allows_delivery === false) {
     addError(errors, "allows_campus_pickup", "at least one fulfilment method must be enabled");
+  }
+  return errors;
+}
+
+export function validateProductListQuery(query, { seller = false } = {}) {
+  const errors = [];
+  const allowed = new Set(["q", "category", "condition", "sort", "page", "limit"]);
+  if (seller) allowed.add("status");
+  for (const field of Object.keys(query)) {
+    if (!allowed.has(field)) addError(errors, field, "is not allowed");
+  }
+  if ("q" in query && (typeof query.q !== "string" || query.q.trim().length > 100)) addError(errors, "q", "must be at most 100 characters");
+  if ("category" in query && (typeof query.category !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(query.category))) addError(errors, "category", "must be a valid category slug");
+  if ("condition" in query && !CONDITIONS.has(query.condition)) addError(errors, "condition", "must be a valid product condition");
+  if ("status" in query && !STATUSES.has(query.status)) addError(errors, "status", "must be a valid listing status");
+  if ("sort" in query && !SORTS.has(query.sort)) addError(errors, "sort", "must be newest, price_asc, price_desc, or most_viewed");
+  for (const [field, maximum] of [["page", 1000000], ["limit", 100]]) {
+    if (field in query) {
+      const number = Number(query[field]);
+      if (!Number.isInteger(number) || number < 1 || number > maximum) addError(errors, field, `must be an integer between 1 and ${maximum}`);
+    }
   }
   return errors;
 }
