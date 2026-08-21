@@ -424,6 +424,19 @@ paths:
       summary: Mark all owned notifications read
       security: [{ bearerAuth: [] }]
       responses: { "204": { description: Notifications marked read } }
+  /api/v1/orders/{id}/reviews:
+    post:
+      summary: Review a product from a completed buyer order
+      security: [{ bearerAuth: [] }]
+      responses: { "201": { description: Review created and reputation refreshed }, "403": { description: Completed buyer order required }, "409": { description: Review already exists } }
+  /api/v1/products/{id}/reviews:
+    get:
+      summary: List public product reviews
+      responses: { "200": { description: Paginated review collection } }
+  /api/v1/shops/{slug}/reviews:
+    get:
+      summary: List public shop reviews
+      responses: { "200": { description: Paginated review collection } }
   /api/v1/categories:
     get:
       summary: List product categories with active product counts
