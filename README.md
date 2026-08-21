@@ -157,9 +157,14 @@ network flow, rebuild/stop commands, ports, and Windows troubleshooting.
 | `POST` | `/api/v1/auth/reset-password` | Changes the password using a recovery access token. |
 | `GET` | `/api/v1/profile` | Returns the authenticated marketplace profile. |
 | `PATCH` | `/api/v1/profile` | Updates user-managed profile fields. |
+| `GET` | `/api/v1/verifications/seller` | Returns the seller's latest verification state. |
+| `POST` | `/api/v1/verifications/seller` | Uploads private `selfie` and `sellerId` verification images. |
 
 Protected endpoints require `Authorization: Bearer <Supabase access token>`.
 The product write endpoints also verify the seller role and shop ownership.
+Verification uploads accept JPEG, PNG, or WebP files up to 5 MB each. Their
+content signatures are checked before storage in a private bucket, and API
+responses never expose the stored object paths.
 The former unversioned auth and product paths remain temporary compatibility
 aliases. New consumers should use `/api/v1`.
 
