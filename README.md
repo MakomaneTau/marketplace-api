@@ -149,6 +149,14 @@ network flow, rebuild/stop commands, ports, and Windows troubleshooting.
 | `GET` | `/api/v1/universities` | Lists searchable universities with campus counts. |
 | `GET` | `/api/v1/universities/:slug` | Returns a university and its campuses. |
 | `GET` | `/api/v1/universities/:slug/campuses` | Lists campuses for a university. |
+| `POST` | `/api/v1/auth/signup` | Creates a buyer or seller account. |
+| `POST` | `/api/v1/auth/login` | Exchanges credentials for a Supabase session. |
+| `POST` | `/api/v1/auth/refresh` | Rotates a valid refresh token. |
+| `POST` | `/api/v1/auth/logout` | Revokes the authenticated user's sessions. |
+| `POST` | `/api/v1/auth/forgot-password` | Requests password recovery without revealing account existence. |
+| `POST` | `/api/v1/auth/reset-password` | Changes the password using a recovery access token. |
+| `GET` | `/api/v1/profile` | Returns the authenticated marketplace profile. |
+| `PATCH` | `/api/v1/profile` | Updates user-managed profile fields. |
 
 Protected endpoints require `Authorization: Bearer <Supabase access token>`.
 The product write endpoints also verify the seller role and shop ownership.

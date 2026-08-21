@@ -31,6 +31,63 @@ paths:
           description: Authenticated user
         "401":
           $ref: "#/components/responses/Unauthorized"
+  /api/v1/auth/signup:
+    post:
+      summary: Create a buyer or seller account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SignupRequest" }
+      responses:
+        "201": { description: Account created }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "409": { description: Email already registered }
+  /api/v1/auth/login:
+    post:
+      summary: Exchange credentials for a Supabase session
+      responses:
+        "200": { description: Authenticated session }
+        "401": { description: Invalid credentials }
+  /api/v1/auth/refresh:
+    post:
+      summary: Rotate a refresh token
+      responses:
+        "200": { description: Refreshed session }
+        "401": { description: Invalid refresh token }
+  /api/v1/auth/logout:
+    post:
+      summary: Revoke the authenticated user's sessions
+      security: [{ bearerAuth: [] }]
+      responses:
+        "204": { description: Sessions revoked }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /api/v1/auth/forgot-password:
+    post:
+      summary: Request password recovery
+      responses:
+        "202": { description: Enumeration-safe recovery response }
+  /api/v1/auth/reset-password:
+    post:
+      summary: Set a password using a recovery access token
+      security: [{ bearerAuth: [] }]
+      responses:
+        "204": { description: Password updated }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /api/v1/profile:
+    get:
+      summary: Return the authenticated marketplace profile
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Marketplace profile }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    patch:
+      summary: Update user-managed profile fields
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Profile updated }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
   /api/v1/products:
     get:
       summary: List publicly visible products
@@ -155,6 +212,18 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
   schemas:
+    SignupRequest:
+      type: object
+      required: [firstName, lastName, email, password, role, isStudent]
+      properties:
+        firstName: { type: string, maxLength: 100 }
+        lastName: { type: string, maxLength: 100 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8, maxLength: 72 }
+        role: { type: string, enum: [buyer, seller] }
+        isStudent: { type: boolean }
+        universitySlug: { type: string }
+        studentNumber: { type: string }
     ErrorResponse:
       type: object
       required: [error]

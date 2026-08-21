@@ -8,8 +8,8 @@ authoritative source for exact code changes.
 | 00 | Complete | `feat/api-web-parity` | `b60f5c0` | `1feb7c4` | Diff check | API-only plan and tracking setup |
 | 01 | Complete | `fix/api-01-local-foundation` | `1feb7c4` | `0049d7d`, `75ab882`, `ee1a3b0`; merge `1648a2f` | 18 tests; typecheck; build; transactional SQL validation | Full seed sequence produced 25 universities, 79 campuses, 2 users, 1 shop, 12 categories, 2 products, and 1 pickup area before rollback; destructive reset not run |
 | 02 | Complete | `feat/api-02-contract` | `1648a2f` | `c28be6e`, `30d6950`; merge `9072980` | 22 tests; syntax check; build; diff check | `/api/v1`, structured responses, request IDs, JSON errors, logging, security headers, in-memory rate limit, and temporary legacy aliases |
-| 03 | Complete | `feat/api-03-reference-data` | `9072980` | Reference API commit, documentation commit | 29 tests; syntax check; build; database lint; live empty-database service query | Public categories, universities, and campuses with filtering and product/campus counts |
-| 04 | Pending | `feat/api-04-auth-accounts` | Task 03 | Pending | Pending | Auth and profiles |
+| 03 | Complete | `feat/api-03-reference-data` | `9072980` | `5f99788`, `08f853b`; merge `9145ce1` | 29 tests; syntax check; build; database lint; live empty-database service query | Public categories, universities, and campuses with filtering and product/campus counts |
+| 04 | Complete | `feat/api-04-auth-accounts` | `9145ce1` | Account API commit, documentation commit | 37 tests; syntax check; build; database lint; live disposable signup, login, refresh, profile update, logout, and cleanup | Buyer/student rules, sessions, password recovery, current account, and safe profile updates |
 | 05 | Pending | `feat/api-05-verification-media` | Task 04 | Pending | Pending | Private media and verification |
 | 06 | Pending | `feat/api-06-shops` | Task 05 | Pending | Pending | Shops and pickup areas |
 | 07 | Pending | `feat/api-07-products-catalog` | Task 06 | Pending | Pending | Product discovery and seller inventory |
