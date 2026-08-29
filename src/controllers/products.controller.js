@@ -36,7 +36,7 @@ export async function listProducts(req, res) {
   if (errors.length) return sendValidationError(res, errors);
   try {
     const result = await productsService.listProducts({
-      q: req.query.q?.trim(), category: req.query.category,
+      q: req.query.q?.trim(), category: req.query.category, slug: req.query.slug,
       condition: req.query.condition, sort: req.query.sort,
       page: req.query.page ? Number(req.query.page) : 1,
       limit: req.query.limit ? Number(req.query.limit) : 24,

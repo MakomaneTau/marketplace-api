@@ -58,4 +58,16 @@ describe("local Supabase setup", () => {
       expect(grantedColumns).not.toMatch(new RegExp(`\\b${managedColumn}\\b`));
     }
   });
+
+  it("generates stable product slugs without replacing UUID identities", () => {
+    const migration = read(
+      "supabase/migrations/20260829000100_add_product_public_slugs.sql"
+    );
+
+    expect(migration).toContain("add column slug text");
+    expect(migration).toContain("build_product_public_slug(title, id)");
+    expect(migration).toContain("split_part(product_id::text, '-', 1)");
+    expect(migration).toContain("before insert on public.products");
+    expect(migration).not.toContain("before update on public.products");
+  });
 });

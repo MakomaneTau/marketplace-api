@@ -90,6 +90,7 @@ export async function listProducts(options = {}) {
     query = query.or(`title.ilike.%${value}%,description.ilike.%${value}%`);
   }
   if (options.category) query = query.eq("categories.slug", options.category);
+  if (options.slug) query = query.eq("slug", options.slug);
   if (options.condition) query = query.eq("condition", options.condition);
   query = applySort(query, options.sort);
   query = query.range((page - 1) * limit, page * limit - 1);

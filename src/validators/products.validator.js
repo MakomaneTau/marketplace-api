@@ -2,6 +2,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3
 const CONDITIONS = new Set(["new", "like_new", "good", "fair"]);
 const STATUSES = new Set(["draft", "active", "sold", "paused"]);
 const SORTS = new Set(["newest", "price_asc", "price_desc", "most_viewed"]);
+const PRODUCT_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9a-f]{8}$/;
 
 const CREATE_FIELDS = new Set([
   "shop_id",
@@ -126,11 +127,13 @@ export function validateProductListQuery(query, { seller = false } = {}) {
   const errors = [];
   const allowed = new Set(["q", "category", "condition", "sort", "page", "limit"]);
   if (seller) allowed.add("status");
+  else allowed.add("slug");
   for (const field of Object.keys(query)) {
     if (!allowed.has(field)) addError(errors, field, "is not allowed");
   }
   if ("q" in query && (typeof query.q !== "string" || query.q.trim().length > 100)) addError(errors, "q", "must be at most 100 characters");
   if ("category" in query && (typeof query.category !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(query.category))) addError(errors, "category", "must be a valid category slug");
+  if ("slug" in query && (typeof query.slug !== "string" || !PRODUCT_SLUG_PATTERN.test(query.slug))) addError(errors, "slug", "must be a valid product slug");
   if ("condition" in query && !CONDITIONS.has(query.condition)) addError(errors, "condition", "must be a valid product condition");
   if ("status" in query && !STATUSES.has(query.status)) addError(errors, "status", "must be a valid listing status");
   if ("sort" in query && !SORTS.has(query.sort)) addError(errors, "sort", "must be newest, price_asc, price_desc, or most_viewed");

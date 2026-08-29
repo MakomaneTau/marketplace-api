@@ -38,6 +38,7 @@ const SELLER = { id: "423e4567-e89b-42d3-a456-426614174000", email: "seller@exam
 
 const product = {
   id: PRODUCT_ID,
+  slug: "calculus-textbook-123e4567",
   shop_id: SHOP_ID,
   category_id: CATEGORY_ID,
   title: "Calculus textbook",
@@ -75,10 +76,33 @@ describe("products API", () => {
       meta: { page: 1, limit: 24, total: 1, totalPages: 1 },
     });
     expect(productsService.listProducts).toHaveBeenCalledWith({
-      q: undefined, category: undefined, condition: undefined, sort: undefined,
+      q: undefined, category: undefined, slug: undefined, condition: undefined, sort: undefined,
       page: 1, limit: 24,
     });
     expect(getUserFromAccessToken).not.toHaveBeenCalled();
+  });
+
+  it("lets public users resolve one product by its readable slug", async () => {
+    productsService.listProducts.mockResolvedValue({
+      products: [product], page: 1, limit: 1, total: 1, totalPages: 1,
+    });
+
+    const response = await request(app)
+      .get(`/api/v1/products?slug=${product.slug}&limit=1`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toEqual([product]);
+    expect(productsService.listProducts).toHaveBeenCalledWith(
+      expect.objectContaining({ slug: product.slug, limit: 1 })
+    );
+  });
+
+  it("rejects malformed public product slugs", async () => {
+    const response = await request(app).get("/api/v1/products?slug=Not-A-Public-Slug");
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    expect(productsService.listProducts).not.toHaveBeenCalled();
   });
 
   it("lets public users read an active product", async () => {
@@ -115,6 +139,7 @@ describe("products API", () => {
     productsService.createProduct.mockResolvedValue(product);
     const input = { ...product };
     delete input.id;
+    delete input.slug;
 
     const response = await request(app)
       .post("/api/products")
@@ -224,6 +249,7 @@ describe("products API", () => {
     authenticateSeller();
     const input = { ...product };
     delete input.id;
+    delete input.slug;
     delete input.shop_id;
     delete input.image_urls;
     input.status = "draft";

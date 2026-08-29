@@ -163,6 +163,7 @@ paths:
       summary: List publicly visible products
       parameters:
         - { in: query, name: q, schema: { type: string, maxLength: 100 } }
+        - { in: query, name: slug, schema: { type: string, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9a-f]{8}$" } }
         - { in: query, name: category, schema: { type: string } }
         - { in: query, name: condition, schema: { type: string, enum: [new, like_new, good, fair] } }
         - { in: query, name: sort, schema: { type: string, enum: [newest, price_asc, price_desc, most_viewed] } }
