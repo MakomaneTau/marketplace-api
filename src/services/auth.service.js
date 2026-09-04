@@ -12,14 +12,44 @@ export class AuthServiceError extends Error {
 }
 
 function authError(error, fallbackCode = "AUTH_SERVICE_UNAVAILABLE") {
-  if (error?.code === "invalid_credentials") {
+  const code = error?.error_code ?? error?.code;
+
+  if (code === "invalid_credentials") {
     return new AuthServiceError(401, "AUTH_CREDENTIALS_INVALID", "Email or password is incorrect.");
   }
-  if (error?.code === "user_already_exists") {
+  if (code === "user_already_exists") {
     return new AuthServiceError(409, "AUTH_EMAIL_IN_USE", "An account already exists for this email address.");
   }
-  if (error?.code === "weak_password") {
-    return new AuthServiceError(400, "AUTH_PASSWORD_WEAK", "The password does not meet the security requirements.");
+  if (code === "weak_password") {
+    return new AuthServiceError(400, "AUTH_PASSWORD_WEAK", "Choose a stronger password that meets the password requirements.");
+  }
+  if (code === "same_password") {
+    return new AuthServiceError(422, "AUTH_PASSWORD_UNCHANGED", "Your new password must be different from your current password.");
+  }
+  if (
+    code === "over_email_send_rate_limit" ||
+    code === "over_request_rate_limit" ||
+    error?.status === 429
+  ) {
+    return new AuthServiceError(429, "AUTH_RATE_LIMITED", "Too many requests. Please wait a moment and try again.");
+  }
+  if (
+    new Set([
+      "bad_jwt",
+      "no_authorization",
+      "otp_expired",
+      "flow_state_expired",
+      "flow_state_not_found",
+      "reauthentication_needed",
+      "reauthentication_not_valid",
+    ]).has(code) ||
+    error?.status === 401 ||
+    error?.status === 403
+  ) {
+    return new AuthServiceError(401, "AUTH_TOKEN_INVALID", "This password reset link is invalid or has expired.");
+  }
+  if (error?.status === 400 || error?.status === 422) {
+    return new AuthServiceError(400, "AUTH_REQUEST_INVALID", "The authentication request could not be completed.");
   }
   return new AuthServiceError(503, fallbackCode, "Authentication is temporarily unavailable.");
 }
@@ -109,25 +139,36 @@ export async function refresh(refreshToken) {
 }
 
 async function authApiRequest(path, { token, method = "POST", body } = {}) {
-  const response = await fetch(`${process.env.SUPABASE_URL}/auth/v1${path}`, {
-    method,
-    headers: {
-      apikey: process.env.SUPABASE_PUBLISHABLE_KEY,
-      authorization: `Bearer ${token}`,
-      ...(body ? { "content-type": "application/json" } : {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new AuthServiceError(401, "AUTH_TOKEN_INVALID", "The access token is invalid or expired.");
-    }
+  let response;
+  try {
+    response = await fetch(`${process.env.SUPABASE_URL}/auth/v1${path}`, {
+      method,
+      headers: {
+        apikey: process.env.SUPABASE_PUBLISHABLE_KEY,
+        authorization: `Bearer ${token}`,
+        ...(body ? { "content-type": "application/json" } : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch {
     throw authError(null);
   }
 
   const text = await response.text();
-  return text ? JSON.parse(text) : null;
+  let payload = null;
+  if (text) {
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      payload = null;
+    }
+  }
+
+  if (!response.ok) {
+    throw authError({ ...payload, status: response.status });
+  }
+
+  return payload;
 }
 
 export async function logout(accessToken) {
