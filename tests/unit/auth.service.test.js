@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   resetPasswordForEmail: vi.fn(),
+  signUp: vi.fn(),
 }));
 
 vi.hoisted(() => {
@@ -13,6 +14,7 @@ vi.mock("../../src/config/supabase-auth.js", () => ({
   supabaseAuth: {
     auth: {
       resetPasswordForEmail: mocks.resetPasswordForEmail,
+      signUp: mocks.signUp,
     },
   },
 }));
@@ -32,7 +34,30 @@ import {
   AuthServiceError,
   requestPasswordReset,
   resetPassword,
+  signup,
 } from "../../src/services/auth.service.js";
+import { resolveUniversityId, updateProfile } from "../../src/services/profile.service.js";
+
+describe("signup without student numbers", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it.each(["buyer", "seller"])("preserves the %s university without requiring student fields", async (role) => {
+    mocks.signUp.mockResolvedValue({ data: { user: { id: "new-user" }, session: null }, error: null });
+    await signup({ firstName: "Test", lastName: "User", email: "test@example.com", password: "Password123!", role, universitySlug: "test-university" });
+    expect(resolveUniversityId).toHaveBeenCalledWith("test-university");
+    expect(updateProfile).toHaveBeenCalledWith("new-user", { universitySlug: "test-university" });
+    const metadata = mocks.signUp.mock.calls[0][0].options.data;
+    expect(metadata.isStudent).toBe(role === "buyer");
+    expect(metadata).not.toHaveProperty("studentNumber");
+  });
+
+  it("allows a seller to omit university", async () => {
+    mocks.signUp.mockResolvedValue({ data: { user: { id: "new-user" }, session: null }, error: null });
+    await signup({ firstName: "Test", lastName: "User", email: "test@example.com", password: "Password123!", role: "seller" });
+    expect(resolveUniversityId).not.toHaveBeenCalled();
+    expect(updateProfile).toHaveBeenCalledWith("new-user", { universitySlug: null });
+  });
+});
 
 function authResponse(status, payload) {
   return {

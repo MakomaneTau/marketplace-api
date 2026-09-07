@@ -79,7 +79,7 @@ export async function getUserFromAccessToken(accessToken) {
 }
 
 export async function signup(input) {
-  if (input.isStudent) await resolveUniversityId(input.universitySlug);
+  if (input.universitySlug) await resolveUniversityId(input.universitySlug);
 
   const { data, error } = await supabaseAuth.auth.signUp({
     email: input.email.trim().toLowerCase(),
@@ -90,8 +90,7 @@ export async function signup(input) {
         lastName: input.lastName.trim(),
         display_name: `${input.firstName.trim()} ${input.lastName.trim()}`,
         role: input.role,
-        isStudent: input.isStudent,
-        studentNumber: input.isStudent ? input.studentNumber.trim() : null,
+        isStudent: input.role === "buyer" || input.isStudent === true,
       },
     },
   });
@@ -100,9 +99,7 @@ export async function signup(input) {
 
   try {
     await updateProfile(data.user.id, {
-      isStudent: input.isStudent,
-      universitySlug: input.isStudent ? input.universitySlug : null,
-      studentNumber: input.isStudent ? input.studentNumber.trim() : null,
+      universitySlug: input.universitySlug ?? null,
     });
   } catch (error) {
     await supabaseAdmin.auth.admin.deleteUser(data.user.id).catch(() => undefined);

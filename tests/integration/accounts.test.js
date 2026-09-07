@@ -67,7 +67,7 @@ function authenticate() {
 describe("account API", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("creates a student buyer account", async () => {
+  it("creates a buyer account with a university and no student number", async () => {
     authService.signup.mockResolvedValue(session);
     const input = {
       firstName: "Test",
@@ -75,9 +75,7 @@ describe("account API", () => {
       email: "buyer@example.com",
       password: "SecurePassword123!",
       role: "buyer",
-      isStudent: true,
       universitySlug: "university-of-the-witwatersrand",
-      studentNumber: "DEV-100",
     };
 
     const response = await request(app).post("/api/v1/auth/signup").send(input);
@@ -99,6 +97,27 @@ describe("account API", () => {
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    expect(authService.signup).not.toHaveBeenCalled();
+  });
+
+  it.each([undefined, "university-of-the-witwatersrand"])("creates a seller without student fields (university: %s)", async (universitySlug) => {
+    authService.signup.mockResolvedValue(session);
+    const input = {
+      firstName: "Test", lastName: "Seller", email: "seller@example.com",
+      password: "SecurePassword123!", role: "seller", universitySlug,
+    };
+    const response = await request(app).post("/api/v1/auth/signup").send(input);
+    expect(response.status).toBe(201);
+    expect(authService.signup).toHaveBeenCalled();
+  });
+
+  it("still requires a university for buyers", async () => {
+    const response = await request(app).post("/api/v1/auth/signup").send({
+      firstName: "Test", lastName: "Buyer", email: "buyer@example.com",
+      password: "SecurePassword123!", role: "buyer",
+    });
+    expect(response.status).toBe(400);
+    expect(response.body.error.details).toContainEqual(expect.objectContaining({ field: "universitySlug" }));
     expect(authService.signup).not.toHaveBeenCalled();
   });
 

@@ -60,22 +60,15 @@ export function validateSignup(input) {
   if (!new Set(["buyer", "seller"]).has(input.role)) {
     errors.push({ field: "role", message: "must be buyer or seller" });
   }
-  if (typeof input.isStudent !== "boolean") {
+  if (input.isStudent !== undefined && typeof input.isStudent !== "boolean") {
     errors.push({ field: "isStudent", message: "must be a boolean" });
   }
-  if (input.role === "buyer" && input.isStudent !== true) {
+  if (input.role === "buyer" && input.isStudent === false) {
     errors.push({ field: "isStudent", message: "buyers must be students" });
   }
 
-  if (input.isStudent === true) {
+  if (input.role === "buyer" || input.universitySlug != null) {
     requiredString(input.universitySlug, "universitySlug", errors, { max: 150 });
-    requiredString(input.studentNumber, "studentNumber", errors, { max: 100 });
-  } else {
-    for (const field of ["universitySlug", "studentNumber"]) {
-      if (input[field] !== undefined && input[field] !== null) {
-        errors.push({ field, message: "must be omitted for non-student accounts" });
-      }
-    }
   }
 
   return errors;
