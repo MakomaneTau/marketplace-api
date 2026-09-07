@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "../config/supabase.js";
 
-const CONVERSATION_SELECT = `*, product:products(id,title,image_urls,status), shop:shops(id,name,slug,logo_url), buyer:profiles!conversations_buyer_id_fkey(id,display_name,avatar_url), seller:profiles!conversations_seller_id_fkey(id,display_name,avatar_url), messages(id,sender_id,body,read_at,created_at)`;
+const CONVERSATION_SELECT = `*, product:products(id,title,slug,price,image_urls,status), shop:shops(id,name,slug,logo_url), buyer:profiles!conversations_buyer_id_fkey(id,display_name,avatar_url,university:universities(id,name,acronym)), seller:profiles!conversations_seller_id_fkey(id,display_name,avatar_url,university:universities(id,name,acronym)), messages(id,sender_id,body,read_at,created_at)`;
 export class MessagingServiceError extends Error { constructor(status, code, message) { super(message); this.status = status; this.code = code; } }
 function mapped(error) {
   const code = error?.message?.match(/(PRODUCT|CONVERSATION|MESSAGE)_[A-Z_]+/)?.[0];
@@ -30,8 +30,10 @@ export async function sendMessage(id,userId,body) {
   if(error) throw mapped(error); const {data:message,error:readError}=await supabaseAdmin.from("messages").select().eq("id",data).single();
   if(readError) throw mapped(readError); return message;
 }
-export async function markConversationRead(id,userId) {
-  await getConversation(id,userId); const {error}=await supabaseAdmin.from("messages").update({read_at:new Date().toISOString()}).eq("conversation_id",id).neq("sender_id",userId).is("read_at",null);
+export async function markConversationRead(id,userId,messageIds) {
+  await getConversation(id,userId); let query = supabaseAdmin.from("messages").update({read_at:new Date().toISOString()}).eq("conversation_id",id).neq("sender_id",userId).is("read_at",null);
+  if (messageIds) query = query.in("id", messageIds);
+  const { error } = await query;
   if(error) throw mapped(error);
 }
 export async function listNotifications(userId,{unreadOnly=false,limit=50}={}) {
@@ -40,3 +42,12 @@ export async function listNotifications(userId,{unreadOnly=false,limit=50}={}) {
 }
 export async function markNotificationRead(id,userId) { const {data,error}=await supabaseAdmin.from("notifications").update({read_at:new Date().toISOString()}).eq("id",id).eq("user_id",userId).select().maybeSingle(); if(error) throw mapped(error); if(!data) throw new MessagingServiceError(404,"NOTIFICATION_NOT_FOUND","Notification not found."); return data; }
 export async function markAllNotificationsRead(userId) { const {error}=await supabaseAdmin.from("notifications").update({read_at:new Date().toISOString()}).eq("user_id",userId).is("read_at",null); if(error) throw mapped(error); }
+
+export async function unreadMessageCount(userId) {
+  const { count, error } = await supabaseAdmin.from("messages")
+    .select("id, conversation:conversations!inner(buyer_id,seller_id)", { count: "exact", head: true })
+    .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`, { referencedTable: "conversation" })
+    .neq("sender_id", userId).is("read_at", null);
+  if (error) throw mapped(error);
+  return { count: count || 0 };
+}
