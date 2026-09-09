@@ -17,6 +17,9 @@ function authError(error, fallbackCode = "AUTH_SERVICE_UNAVAILABLE") {
   if (code === "invalid_credentials") {
     return new AuthServiceError(401, "AUTH_CREDENTIALS_INVALID", "Email or password is incorrect.");
   }
+  if (code === "email_not_confirmed") {
+    return new AuthServiceError(403, "AUTH_EMAIL_NOT_CONFIRMED", "Confirm your email before signing in. Check your inbox and spam folder for the verification email.");
+  }
   if (code === "user_already_exists") {
     return new AuthServiceError(409, "AUTH_EMAIL_IN_USE", "An account already exists for this email address.");
   }

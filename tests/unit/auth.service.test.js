@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   resetPasswordForEmail: vi.fn(),
   signUp: vi.fn(),
+  signInWithPassword: vi.fn(),
 }));
 
 vi.hoisted(() => {
@@ -15,6 +16,7 @@ vi.mock("../../src/config/supabase-auth.js", () => ({
     auth: {
       resetPasswordForEmail: mocks.resetPasswordForEmail,
       signUp: mocks.signUp,
+      signInWithPassword: mocks.signInWithPassword,
     },
   },
 }));
@@ -35,8 +37,20 @@ import {
   requestPasswordReset,
   resetPassword,
   signup,
+  login,
 } from "../../src/services/auth.service.js";
 import { resolveUniversityId, updateProfile } from "../../src/services/profile.service.js";
+
+describe("unconfirmed email login", () => {
+  it("explains verification instead of returning a generic authentication error", async () => {
+    mocks.signInWithPassword.mockResolvedValue({ data: {}, error: { code: "email_not_confirmed", status: 400 } });
+    await expect(login({ email: "pending@example.com", password: "Password123!" })).rejects.toMatchObject({
+      status: 403,
+      code: "AUTH_EMAIL_NOT_CONFIRMED",
+      message: expect.stringContaining("Confirm your email"),
+    });
+  });
+});
 
 describe("signup without student numbers", () => {
   beforeEach(() => vi.clearAllMocks());
