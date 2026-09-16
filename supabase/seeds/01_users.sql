@@ -49,7 +49,7 @@ values
     '',
     '',
     '{"provider":"email","providers":["email"]}'::jsonb,
-    '{"role":"buyer","firstName":"Test","lastName":"Buyer","display_name":"Test Buyer","isStudent":true,"studentNumber":"DEV-0001"}'::jsonb,
+    '{"role":"buyer","firstName":"Test","lastName":"Buyer","display_name":"Test Buyer","isStudent":true}'::jsonb,
     now(),
     now()
   );
@@ -85,3 +85,15 @@ values
     now(),
     now()
   );
+
+-- Buyer accounts require a university. Reference data is provisioned by the
+-- university migration before reset-time development seeds run.
+update public.profiles as profile
+set
+  university_id = university.id,
+  campus_id = campus.id
+from public.universities as university
+join public.campuses as campus on campus.university_id = university.id
+where profile.id = '10000000-0000-4000-8000-000000000002'
+  and university.slug = 'university-of-pretoria'
+  and campus.name = 'Hatfield Campus';

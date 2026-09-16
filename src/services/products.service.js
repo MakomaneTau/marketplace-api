@@ -76,6 +76,18 @@ function applySort(query, sort) {
   return query.order("created_at", { ascending: false });
 }
 
+function normalizeOptionalProductFields(input) {
+  const normalized = { ...input };
+  for (const field of ["description", "pickup_location"]) {
+    if (Object.prototype.hasOwnProperty.call(normalized, field)) {
+      normalized[field] = typeof normalized[field] === "string" && normalized[field].trim()
+        ? normalized[field].trim()
+        : null;
+    }
+  }
+  return normalized;
+}
+
 export async function listProducts(options = {}) {
   const page = options.page || 1;
   const limit = options.limit || 24;
@@ -91,6 +103,7 @@ export async function listProducts(options = {}) {
   }
   if (options.category) query = query.eq("categories.slug", options.category);
   if (options.slug) query = query.eq("slug", options.slug);
+  if (options.shop) query = query.eq("shops.slug", options.shop);
   if (options.condition) query = query.eq("condition", options.condition);
   query = applySort(query, options.sort);
   query = query.range((page - 1) * limit, page * limit - 1);
@@ -151,7 +164,7 @@ export async function createProduct(input, userId) {
 
   const { data, error } = await supabaseAdmin
     .from("products")
-    .insert(input)
+    .insert(normalizeOptionalProductFields(input))
     .select()
     .single();
 
@@ -163,7 +176,7 @@ export async function updateProduct(productId, input, userId) {
   await getManagedProduct(productId, userId);
   const { data, error } = await supabaseAdmin
     .from("products")
-    .update(input)
+    .update(normalizeOptionalProductFields(input))
     .eq("id", productId)
     .select()
     .single();
