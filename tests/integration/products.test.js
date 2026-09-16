@@ -76,10 +76,24 @@ describe("products API", () => {
       meta: { page: 1, limit: 24, total: 1, totalPages: 1 },
     });
     expect(productsService.listProducts).toHaveBeenCalledWith({
-      q: undefined, category: undefined, slug: undefined, condition: undefined, sort: undefined,
+      q: undefined, category: undefined, slug: undefined, shop: undefined, condition: undefined, sort: undefined,
       page: 1, limit: 24,
     });
     expect(getUserFromAccessToken).not.toHaveBeenCalled();
+  });
+
+  it("lets public users list active products from one shop", async () => {
+    productsService.listProducts.mockResolvedValue({
+      products: [product], page: 1, limit: 4, total: 1, totalPages: 1,
+    });
+
+    const response = await request(app).get("/api/v1/products?shop=campus-store&limit=4");
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toEqual([product]);
+    expect(productsService.listProducts).toHaveBeenCalledWith(
+      expect.objectContaining({ shop: "campus-store", limit: 4 })
+    );
   });
 
   it("lets public users resolve one product by its readable slug", async () => {
@@ -254,6 +268,28 @@ describe("products API", () => {
     delete input.image_urls;
     input.status = "draft";
     productsService.createSellerProduct.mockResolvedValue(product);
+
+    const response = await request(app)
+      .post("/api/v1/seller/products")
+      .set("Authorization", "Bearer seller-token")
+      .send(input);
+
+    expect(response.status).toBe(201);
+    expect(productsService.createSellerProduct).toHaveBeenCalledWith(input, SELLER.id);
+  });
+
+  it("creates a seller product without optional description or pickup location", async () => {
+    authenticateSeller();
+    const input = { ...product };
+    delete input.id;
+    delete input.slug;
+    delete input.shop_id;
+    delete input.image_urls;
+    delete input.description;
+    delete input.pickup_location;
+    input.status = "draft";
+    input.allows_delivery = true;
+    productsService.createSellerProduct.mockResolvedValue({ ...product, description: null, pickup_location: null });
 
     const response = await request(app)
       .post("/api/v1/seller/products")

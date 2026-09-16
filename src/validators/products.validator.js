@@ -3,6 +3,7 @@ const CONDITIONS = new Set(["new", "like_new", "good", "fair"]);
 const STATUSES = new Set(["draft", "active", "sold", "paused"]);
 const SORTS = new Set(["newest", "price_asc", "price_desc", "most_viewed"]);
 const PRODUCT_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9a-f]{8}$/;
+const SHOP_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const CREATE_FIELDS = new Set([
   "shop_id",
@@ -27,6 +28,8 @@ function addError(errors, field, message) {
 }
 
 function validateString(value, field, errors, { min = 1, max } = {}) {
+  if (value === null) return;
+
   if (typeof value !== "string") {
     addError(errors, field, "must be a string");
     return;
@@ -91,7 +94,7 @@ export function validateCreateProduct(input) {
     return [{ field: "body", message: "must be a JSON object" }];
   }
 
-  for (const field of ["shop_id", "category_id", "title", "description", "condition", "price", "pickup_location"]) {
+  for (const field of ["shop_id", "category_id", "title", "condition", "price"]) {
     if (!(field in input)) addError(errors, field, "is required");
   }
   validateFields(input, CREATE_FIELDS, errors);
@@ -127,13 +130,17 @@ export function validateProductListQuery(query, { seller = false } = {}) {
   const errors = [];
   const allowed = new Set(["q", "category", "condition", "sort", "page", "limit"]);
   if (seller) allowed.add("status");
-  else allowed.add("slug");
+  else {
+    allowed.add("slug");
+    allowed.add("shop");
+  }
   for (const field of Object.keys(query)) {
     if (!allowed.has(field)) addError(errors, field, "is not allowed");
   }
   if ("q" in query && (typeof query.q !== "string" || query.q.trim().length > 100)) addError(errors, "q", "must be at most 100 characters");
   if ("category" in query && (typeof query.category !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(query.category))) addError(errors, "category", "must be a valid category slug");
   if ("slug" in query && (typeof query.slug !== "string" || !PRODUCT_SLUG_PATTERN.test(query.slug))) addError(errors, "slug", "must be a valid product slug");
+  if ("shop" in query && (typeof query.shop !== "string" || !SHOP_SLUG_PATTERN.test(query.shop))) addError(errors, "shop", "must be a valid shop slug");
   if ("condition" in query && !CONDITIONS.has(query.condition)) addError(errors, "condition", "must be a valid product condition");
   if ("status" in query && !STATUSES.has(query.status)) addError(errors, "status", "must be a valid listing status");
   if ("sort" in query && !SORTS.has(query.sort)) addError(errors, "sort", "must be newest, price_asc, price_desc, or most_viewed");
