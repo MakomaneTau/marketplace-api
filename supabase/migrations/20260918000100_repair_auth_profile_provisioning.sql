@@ -55,9 +55,9 @@ begin
       else 'buyer'
     end,
     case
-      when new.raw_user_meta_data ->> 'role' = 'buyer' then true
-      when lower(new.raw_user_meta_data ->> 'isStudent') in ('true', '1') then true
-      else false
+      when new.raw_user_meta_data ->> 'role' = 'seller'
+        then lower(new.raw_user_meta_data ->> 'isStudent') in ('true', '1')
+      else true
     end,
     nullif(trim(new.raw_user_meta_data ->> 'studentNumber'), '')
   )
@@ -115,9 +115,9 @@ select
     else 'buyer'
   end,
   case
-    when auth_user.raw_user_meta_data ->> 'role' = 'buyer' then true
-    when lower(auth_user.raw_user_meta_data ->> 'isStudent') in ('true', '1') then true
-    else false
+    when auth_user.raw_user_meta_data ->> 'role' = 'seller'
+      then lower(auth_user.raw_user_meta_data ->> 'isStudent') in ('true', '1')
+    else true
   end,
   nullif(trim(auth_user.raw_user_meta_data ->> 'studentNumber'), '')
 from auth.users auth_user
