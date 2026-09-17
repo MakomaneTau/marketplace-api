@@ -62,12 +62,12 @@ function sessionDto(data) {
     user: data.user,
     session: data.session
       ? {
-          accessToken: data.session.access_token,
-          refreshToken: data.session.refresh_token,
-          expiresAt: data.session.expires_at,
-          expiresIn: data.session.expires_in,
-          tokenType: data.session.token_type,
-        }
+        accessToken: data.session.access_token,
+        refreshToken: data.session.refresh_token,
+        expiresAt: data.session.expires_at,
+        expiresIn: data.session.expires_in,
+        tokenType: data.session.token_type,
+      }
       : null,
   };
 }
@@ -82,33 +82,128 @@ export async function getUserFromAccessToken(accessToken) {
 }
 
 export async function signup(input) {
-  if (input.universitySlug) await resolveUniversityId(input.universitySlug);
-
-  const { data, error } = await supabaseAuth.auth.signUp({
-    email: input.email.trim().toLowerCase(),
-    password: input.password,
-    options: {
-      data: {
-        firstName: input.firstName.trim(),
-        lastName: input.lastName.trim(),
-        display_name: `${input.firstName.trim()} ${input.lastName.trim()}`,
-        role: input.role,
-        isStudent: input.role === "buyer" || input.isStudent === true,
-      },
-    },
+  console.log("[AUTH] signup started", {
+    email: input.email?.trim().toLowerCase(),
+    universitySlug: input.universitySlug ?? null,
+    role: input.role,
   });
 
-  if (error || !data.user) throw authError(error);
+  if (input.universitySlug) {
+    try {
+      console.log("[AUTH] resolving university", {
+        universitySlug: input.universitySlug,
+      });
+
+      const universityId = await resolveUniversityId(input.universitySlug);
+
+      console.log("[AUTH] university resolved", {
+        universityId,
+      });
+    } catch (error) {
+      console.error("[AUTH] resolveUniversityId failed", {
+        name: error?.name,
+        code: error?.code,
+        message: error?.message,
+        status: error?.status,
+        stack: error?.stack,
+      });
+
+      throw authError(error);
+    }
+  }
+
+  let data;
+  let error;
 
   try {
+    console.log("[AUTH] calling Supabase signUp");
+
+    ({ data, error } = await supabaseAuth.auth.signUp({
+      email: input.email.trim().toLowerCase(),
+      password: input.password,
+      options: {
+        data: {
+          firstName: input.firstName.trim(),
+          lastName: input.lastName.trim(),
+          display_name: `${input.firstName.trim()} ${input.lastName.trim()}`,
+          role: input.role,
+          isStudent:
+            input.role === "buyer" || input.isStudent === true,
+        },
+      },
+    }));
+  } catch (error) {
+    console.error("[AUTH] Supabase signUp threw exception", {
+      name: error?.name,
+      code: error?.code,
+      message: error?.message,
+      status: error?.status,
+      stack: error?.stack,
+    });
+
+    throw authError(error);
+  }
+
+  if (error) {
+    console.error("[AUTH] Supabase signUp returned error", {
+      name: error?.name,
+      code: error?.code,
+      error_code: error?.error_code,
+      message: error?.message,
+      status: error?.status,
+    });
+  } else {
+    console.log("[AUTH] Supabase signUp succeeded", {
+      userId: data?.user?.id,
+      hasSession: Boolean(data?.session),
+    });
+  }
+
+  if (error || !data.user) {
+    throw authError(error);
+  }
+
+  try {
+    console.log("[AUTH] updating profile", {
+      userId: data.user.id,
+    });
+
     await updateProfile(data.user.id, {
       universitySlug: input.universitySlug ?? null,
     });
+
+    console.log("[AUTH] profile updated", {
+      userId: data.user.id,
+    });
   } catch (error) {
-    await supabaseAdmin.auth.admin.deleteUser(data.user.id).catch(() => undefined);
-    if (error?.code === "UNIVERSITY_REFERENCE_INVALID") throw error;
+    console.error("[AUTH] updateProfile failed", {
+      name: error?.name,
+      code: error?.code,
+      message: error?.message,
+      status: error?.status,
+      stack: error?.stack,
+    });
+
+    await supabaseAdmin.auth.admin
+      .deleteUser(data.user.id)
+      .catch((deleteError) => {
+        console.error("[AUTH] cleanup deleteUser failed", {
+          name: deleteError?.name,
+          code: deleteError?.code,
+          message: deleteError?.message,
+        });
+      });
+
+    if (error?.code === "UNIVERSITY_REFERENCE_INVALID") {
+      throw error;
+    }
+
     throw authError(error);
   }
+
+  console.log("[AUTH] signup completed", {
+    userId: data.user.id,
+  });
 
   return sessionDto(data);
 }

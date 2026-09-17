@@ -149,7 +149,27 @@ export async function updateProfile(userId, input) {
     .select(PROFILE_SELECT)
     .maybeSingle();
 
+  console.log("[PROFILE] update result", {
+    userId,
+    update,
+    hasData: Boolean(data),
+    error: error
+      ? {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      }
+      : null,
+  });
+
   if (error) throw unavailable();
-  if (!data) throw new ProfileServiceError(404, "PROFILE_NOT_FOUND", "Profile not found.");
-  return toProfileDto(data);
+  if (!data) {
+    console.error("[PROFILE] NO PROFILE FOUND", { userId });
+    throw new ProfileServiceError(
+      404,
+      "PROFILE_NOT_FOUND",
+      "Profile not found."
+    );
+  }
 }
