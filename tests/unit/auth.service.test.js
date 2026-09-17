@@ -61,6 +61,7 @@ describe("unconfirmed email login", () => {
 
 describe("signup without student numbers", () => {
   beforeEach(() => {
+    // Reset implementations as well as call history so one signup case cannot leak into the next.
     vi.resetAllMocks();
     mocks.getUserById.mockResolvedValue({
       data: { user: { id: "new-user" } },
