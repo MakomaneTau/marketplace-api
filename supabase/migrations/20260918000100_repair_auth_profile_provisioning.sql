@@ -126,3 +126,5 @@ where profile.id is null
 on conflict (id) do nothing;
 
 revoke all on function public.handle_new_user() from public;
+revoke execute on function public.handle_new_user() from anon;
+revoke execute on function public.handle_new_user() from authenticated;
