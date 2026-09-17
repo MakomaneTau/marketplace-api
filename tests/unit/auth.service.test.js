@@ -107,6 +107,32 @@ describe("signup without student numbers", () => {
     expect(mocks.deleteUser).not.toHaveBeenCalled();
   });
 
+  it("rolls back a newly created user when persistence verification is unavailable", async () => {
+    mocks.signUp.mockResolvedValue({
+      data: { user: { id: "new-user" }, session: null },
+      error: null,
+    });
+    mocks.getUserById.mockResolvedValue({
+      data: { user: null },
+      error: { status: 500, code: "unexpected_failure" },
+    });
+
+    await expect(signup({
+      firstName: "New",
+      lastName: "User",
+      email: "new@example.com",
+      password: "Password123!",
+      role: "buyer",
+      universitySlug: "test-university",
+    })).rejects.toMatchObject({
+      status: 503,
+      code: "AUTH_USER_VERIFICATION_UNAVAILABLE",
+    });
+
+    expect(updateProfile).not.toHaveBeenCalled();
+    expect(mocks.deleteUser).toHaveBeenCalledWith("new-user");
+  });
+
   it("reports profile provisioning failures and rolls back the new auth user", async () => {
     mocks.signUp.mockResolvedValue({
       data: { user: { id: "new-user" }, session: null },
