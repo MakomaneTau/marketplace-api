@@ -61,7 +61,7 @@ describe("unconfirmed email login", () => {
 
 describe("signup without student numbers", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     mocks.getUserById.mockResolvedValue({
       data: { user: { id: "new-user" } },
       error: null,
