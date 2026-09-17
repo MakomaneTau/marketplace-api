@@ -72,23 +72,32 @@ function authError(error, fallbackCode = "AUTH_SERVICE_UNAVAILABLE") {
 }
 
 async function confirmPersistedSignupUser(userId) {
-  const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
+  try {
+    const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
 
-  if (!error && data?.user) return data.user;
+    if (!error && data?.user) return data.user;
 
-  if (error?.status === 404 || error?.code === "user_not_found") {
+    if (error?.status === 404 || error?.code === "user_not_found") {
+      throw new AuthServiceError(
+        409,
+        "AUTH_EMAIL_IN_USE",
+        "An account already exists for this email address."
+      );
+    }
+
     throw new AuthServiceError(
-      409,
-      "AUTH_EMAIL_IN_USE",
-      "An account already exists for this email address."
+      503,
+      "AUTH_USER_VERIFICATION_UNAVAILABLE",
+      "Authentication is temporarily unavailable."
+    );
+  } catch (error) {
+    if (error instanceof AuthServiceError) throw error;
+    throw new AuthServiceError(
+      503,
+      "AUTH_USER_VERIFICATION_UNAVAILABLE",
+      "Authentication is temporarily unavailable."
     );
   }
-
-  throw new AuthServiceError(
-    503,
-    "AUTH_USER_VERIFICATION_UNAVAILABLE",
-    "Authentication is temporarily unavailable."
-  );
 }
 
 async function rollbackSignupUser(userId) {
@@ -153,7 +162,14 @@ export async function signup(input) {
 
   if (error || !data.user) throw authError(error);
 
-  await confirmPersistedSignupUser(data.user.id);
+  try {
+    await confirmPersistedSignupUser(data.user.id);
+  } catch (error) {
+    if (error?.code !== "AUTH_EMAIL_IN_USE") {
+      await rollbackSignupUser(data.user.id);
+    }
+    throw error;
+  }
 
   try {
     await updateProfile(data.user.id, {
