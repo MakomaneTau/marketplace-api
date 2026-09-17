@@ -4,6 +4,8 @@ const mocks = vi.hoisted(() => ({
   resetPasswordForEmail: vi.fn(),
   signUp: vi.fn(),
   signInWithPassword: vi.fn(),
+  getUserById: vi.fn(),
+  deleteUser: vi.fn(),
 }));
 
 vi.hoisted(() => {
@@ -23,7 +25,12 @@ vi.mock("../../src/config/supabase-auth.js", () => ({
 
 vi.mock("../../src/config/supabase.js", () => ({
   supabaseAdmin: {
-    auth: { admin: { deleteUser: vi.fn() } },
+    auth: {
+      admin: {
+        getUserById: mocks.getUserById,
+        deleteUser: mocks.deleteUser,
+      },
+    },
   },
 }));
 
@@ -53,7 +60,14 @@ describe("unconfirmed email login", () => {
 });
 
 describe("signup without student numbers", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getUserById.mockResolvedValue({
+      data: { user: { id: "new-user" } },
+      error: null,
+    });
+    mocks.deleteUser.mockResolvedValue({ data: {}, error: null });
+  });
 
   it.each(["buyer", "seller"])("preserves the %s university without requiring student fields", async (role) => {
     mocks.signUp.mockResolvedValue({ data: { user: { id: "new-user" }, session: null }, error: null });
@@ -63,6 +77,59 @@ describe("signup without student numbers", () => {
     const metadata = mocks.signUp.mock.calls[0][0].options.data;
     expect(metadata.isStudent).toBe(role === "buyer");
     expect(metadata).not.toHaveProperty("studentNumber");
+  });
+
+
+  it("rejects an obfuscated signup response for an existing account", async () => {
+    mocks.signUp.mockResolvedValue({
+      data: { user: { id: "obfuscated-user" }, session: null },
+      error: null,
+    });
+    mocks.getUserById.mockResolvedValue({
+      data: { user: null },
+      error: { status: 404, code: "user_not_found" },
+    });
+
+    await expect(signup({
+      firstName: "Existing",
+      lastName: "User",
+      email: "existing@example.com",
+      password: "Password123!",
+      role: "buyer",
+      universitySlug: "test-university",
+    })).rejects.toMatchObject({
+      status: 409,
+      code: "AUTH_EMAIL_IN_USE",
+    });
+
+    expect(updateProfile).not.toHaveBeenCalled();
+    expect(mocks.deleteUser).not.toHaveBeenCalled();
+  });
+
+  it("reports profile provisioning failures and rolls back the new auth user", async () => {
+    mocks.signUp.mockResolvedValue({
+      data: { user: { id: "new-user" }, session: null },
+      error: null,
+    });
+    updateProfile.mockRejectedValue({
+      status: 404,
+      code: "PROFILE_NOT_FOUND",
+      message: "Profile not found.",
+    });
+
+    await expect(signup({
+      firstName: "New",
+      lastName: "User",
+      email: "new@example.com",
+      password: "Password123!",
+      role: "buyer",
+      universitySlug: "test-university",
+    })).rejects.toMatchObject({
+      status: 500,
+      code: "AUTH_PROFILE_PROVISIONING_FAILED",
+    });
+
+    expect(mocks.deleteUser).toHaveBeenCalledWith("new-user");
   });
 
   it("allows a seller to omit university", async () => {
