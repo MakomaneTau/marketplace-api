@@ -160,11 +160,23 @@ export async function signup(input) {
     },
   });
 
-  if (error || !data.user) throw authError(error);
+  if (error || !data.user) {
+    console.error("[AUTH] signup failed at provider", {
+      code: error?.error_code ?? error?.code ?? null,
+      status: error?.status ?? null,
+      hasUser: Boolean(data?.user),
+    });
+    throw authError(error);
+  }
 
   try {
     await confirmPersistedSignupUser(data.user.id);
   } catch (error) {
+    console.error("[AUTH] signup failed during persisted-user verification", {
+      userId: data.user.id,
+      code: error?.code ?? null,
+      status: error?.status ?? null,
+    });
     if (error?.code !== "AUTH_EMAIL_IN_USE") {
       await rollbackSignupUser(data.user.id);
     }
@@ -176,6 +188,11 @@ export async function signup(input) {
       universitySlug: input.universitySlug ?? null,
     });
   } catch (error) {
+    console.error("[AUTH] signup failed during profile provisioning", {
+      userId: data.user.id,
+      code: error?.code ?? null,
+      status: error?.status ?? null,
+    });
     await rollbackSignupUser(data.user.id);
     if (error?.code === "UNIVERSITY_REFERENCE_INVALID") throw error;
     throw authError(error);
