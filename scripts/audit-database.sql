@@ -91,6 +91,14 @@ begin
   end if;
 
   select count(*) into violation_count
+  from auth.users auth_user
+  left join public.profiles profile on profile.id = auth_user.id
+  where profile.id is null;
+  if violation_count > 0 then
+    raise exception 'DATABASE_AUDIT_FAILED: % auth users do not have marketplace profiles', violation_count;
+  end if;
+
+  select count(*) into violation_count
   from public.profiles profile
   join public.campuses campus on campus.id = profile.campus_id
   where profile.university_id is distinct from campus.university_id;
