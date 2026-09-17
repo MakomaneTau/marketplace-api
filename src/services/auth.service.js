@@ -51,10 +51,63 @@ function authError(error, fallbackCode = "AUTH_SERVICE_UNAVAILABLE") {
   ) {
     return new AuthServiceError(401, "AUTH_TOKEN_INVALID", "This password reset link is invalid or has expired.");
   }
+  if (code === "PROFILE_NOT_FOUND") {
+    return new AuthServiceError(
+      500,
+      "AUTH_PROFILE_PROVISIONING_FAILED",
+      "The account profile could not be provisioned."
+    );
+  }
+  if (code === "PROFILE_SERVICE_UNAVAILABLE") {
+    return new AuthServiceError(
+      503,
+      "AUTH_PROFILE_PROVISIONING_UNAVAILABLE",
+      "Account profile provisioning is temporarily unavailable."
+    );
+  }
   if (error?.status === 400 || error?.status === 422) {
     return new AuthServiceError(400, "AUTH_REQUEST_INVALID", "The authentication request could not be completed.");
   }
   return new AuthServiceError(503, fallbackCode, "Authentication is temporarily unavailable.");
+}
+
+async function confirmPersistedSignupUser(userId) {
+  const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
+
+  if (!error && data?.user) return data.user;
+
+  if (error?.status === 404 || error?.code === "user_not_found") {
+    throw new AuthServiceError(
+      409,
+      "AUTH_EMAIL_IN_USE",
+      "An account already exists for this email address."
+    );
+  }
+
+  throw new AuthServiceError(
+    503,
+    "AUTH_USER_VERIFICATION_UNAVAILABLE",
+    "Authentication is temporarily unavailable."
+  );
+}
+
+async function rollbackSignupUser(userId) {
+  try {
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (error) {
+      console.error("[AUTH] failed to roll back signup user", {
+        userId,
+        code: error.code ?? null,
+        status: error.status ?? null,
+      });
+    }
+  } catch (error) {
+    console.error("[AUTH] failed to roll back signup user", {
+      userId,
+      code: error?.code ?? null,
+      status: error?.status ?? null,
+    });
+  }
 }
 
 function sessionDto(data) {
@@ -100,12 +153,14 @@ export async function signup(input) {
 
   if (error || !data.user) throw authError(error);
 
+  await confirmPersistedSignupUser(data.user.id);
+
   try {
     await updateProfile(data.user.id, {
       universitySlug: input.universitySlug ?? null,
     });
   } catch (error) {
-    await supabaseAdmin.auth.admin.deleteUser(data.user.id).catch(() => undefined);
+    await rollbackSignupUser(data.user.id);
     if (error?.code === "UNIVERSITY_REFERENCE_INVALID") throw error;
     throw authError(error);
   }
