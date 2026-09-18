@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  deleteUser: vi.fn(),
   resetPasswordForEmail: vi.fn(),
   signUp: vi.fn(),
   signInWithPassword: vi.fn(),
@@ -23,7 +24,7 @@ vi.mock("../../src/config/supabase-auth.js", () => ({
 
 vi.mock("../../src/config/supabase.js", () => ({
   supabaseAdmin: {
-    auth: { admin: { deleteUser: vi.fn() } },
+    auth: { admin: { deleteUser: mocks.deleteUser } },
   },
 }));
 
@@ -53,7 +54,10 @@ describe("unconfirmed email login", () => {
 });
 
 describe("signup without student numbers", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.deleteUser.mockResolvedValue({});
+  });
 
   it.each(["buyer", "seller"])("preserves the %s university without requiring student fields", async (role) => {
     mocks.signUp.mockResolvedValue({ data: { user: { id: "new-user" }, session: null }, error: null });
@@ -70,6 +74,24 @@ describe("signup without student numbers", () => {
     await signup({ firstName: "Test", lastName: "User", email: "test@example.com", password: "Password123!", role: "seller" });
     expect(resolveUniversityId).not.toHaveBeenCalled();
     expect(updateProfile).toHaveBeenCalledWith("new-user", { universitySlug: null });
+  });
+
+  it("reports profile trigger failures without presenting them as Supabase Auth signup failures", async () => {
+    mocks.signUp.mockResolvedValue({ data: { user: { id: "new-user" }, session: null }, error: null });
+    updateProfile.mockRejectedValue(Object.assign(new Error("Profile not found."), {
+      name: "ProfileServiceError",
+      status: 404,
+      code: "PROFILE_NOT_FOUND",
+    }));
+
+    await expectAuthError(
+      signup({ firstName: "Test", lastName: "User", email: "test@example.com", password: "Password123!", role: "buyer" }),
+      {
+        status: 503,
+        code: "AUTH_PROFILE_SYNC_FAILED",
+        message: expect.stringContaining("profile setup"),
+      }
+    );
   });
 });
 

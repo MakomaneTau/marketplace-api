@@ -44,6 +44,28 @@ function toProfileDto(profile) {
   };
 }
 
+function logProfile(level, event, payload = {}) {
+  if (process.env.NODE_ENV === "test") return;
+  console[level](
+    JSON.stringify({
+      level,
+      event,
+      service: "profile",
+      ...payload,
+    })
+  );
+}
+
+function serializeDatabaseError(error) {
+  if (!error) return null;
+  return {
+    code: error.code,
+    message: error.message,
+    details: error.details,
+    hint: error.hint,
+  };
+}
+
 export async function getProfile(userId) {
   const { data, error } = await supabaseAdmin
     .from("profiles")
@@ -149,23 +171,19 @@ export async function updateProfile(userId, input) {
     .select(PROFILE_SELECT)
     .maybeSingle();
 
-  console.log("[PROFILE] update result", {
+  logProfile(error ? "error" : "info", "profile_update_result", {
     userId,
-    update,
+    updateFields: Object.keys(update),
     hasData: Boolean(data),
-    error: error
-      ? {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-      }
-      : null,
+    error: serializeDatabaseError(error),
   });
 
   if (error) throw unavailable();
   if (!data) {
-    console.error("[PROFILE] NO PROFILE FOUND", { userId });
+    logProfile("error", "profile_update_missing_row", {
+      userId,
+      attemptedFields: Object.keys(update),
+    });
     throw new ProfileServiceError(
       404,
       "PROFILE_NOT_FOUND",

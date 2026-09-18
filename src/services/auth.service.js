@@ -14,6 +14,14 @@ export class AuthServiceError extends Error {
 function authError(error, fallbackCode = "AUTH_SERVICE_UNAVAILABLE") {
   const code = error?.error_code ?? error?.code;
 
+  if (code === "PROFILE_NOT_FOUND") {
+    return new AuthServiceError(
+      503,
+      "AUTH_PROFILE_SYNC_FAILED",
+      "Your account was created, but profile setup could not be completed. Please try again shortly."
+    );
+  }
+
   if (code === "invalid_credentials") {
     return new AuthServiceError(401, "AUTH_CREDENTIALS_INVALID", "Email or password is incorrect.");
   }
@@ -57,6 +65,39 @@ function authError(error, fallbackCode = "AUTH_SERVICE_UNAVAILABLE") {
   return new AuthServiceError(503, fallbackCode, "Authentication is temporarily unavailable.");
 }
 
+function maskEmail(email) {
+  const normalized = email?.trim().toLowerCase();
+  if (!normalized || !normalized.includes("@")) return null;
+  const [localPart, domain] = normalized.split("@");
+  const maskedLocal = localPart.length <= 2
+    ? `${localPart[0] ?? ""}*`
+    : `${localPart.slice(0, 2)}***`;
+  return `${maskedLocal}@${domain}`;
+}
+
+function serializeError(error) {
+  if (!error) return null;
+  return {
+    name: error.name,
+    code: error.code,
+    error_code: error.error_code,
+    status: error.status,
+    message: error.message,
+  };
+}
+
+function logAuth(level, event, payload = {}) {
+  if (process.env.NODE_ENV === "test") return;
+  console[level](
+    JSON.stringify({
+      level,
+      event,
+      service: "auth",
+      ...payload,
+    })
+  );
+}
+
 function sessionDto(data) {
   return {
     user: data.user,
@@ -82,30 +123,28 @@ export async function getUserFromAccessToken(accessToken) {
 }
 
 export async function signup(input) {
-  console.log("[AUTH] signup started", {
-    email: input.email?.trim().toLowerCase(),
+  const email = input.email.trim().toLowerCase();
+
+  logAuth("info", "signup_started", {
+    email: maskEmail(email),
     universitySlug: input.universitySlug ?? null,
     role: input.role,
   });
 
   if (input.universitySlug) {
     try {
-      console.log("[AUTH] resolving university", {
+      logAuth("info", "signup_university_lookup_started", {
         universitySlug: input.universitySlug,
       });
 
       const universityId = await resolveUniversityId(input.universitySlug);
 
-      console.log("[AUTH] university resolved", {
+      logAuth("info", "signup_university_lookup_succeeded", {
         universityId,
       });
     } catch (error) {
-      console.error("[AUTH] resolveUniversityId failed", {
-        name: error?.name,
-        code: error?.code,
-        message: error?.message,
-        status: error?.status,
-        stack: error?.stack,
+      logAuth("error", "signup_university_lookup_failed", {
+        error: serializeError(error),
       });
 
       throw authError(error);
@@ -116,10 +155,10 @@ export async function signup(input) {
   let error;
 
   try {
-    console.log("[AUTH] calling Supabase signUp");
+    logAuth("info", "signup_supabase_request_started");
 
     ({ data, error } = await supabaseAuth.auth.signUp({
-      email: input.email.trim().toLowerCase(),
+      email,
       password: input.password,
       options: {
         data: {
@@ -133,27 +172,19 @@ export async function signup(input) {
       },
     }));
   } catch (error) {
-    console.error("[AUTH] Supabase signUp threw exception", {
-      name: error?.name,
-      code: error?.code,
-      message: error?.message,
-      status: error?.status,
-      stack: error?.stack,
+    logAuth("error", "signup_supabase_request_failed", {
+      error: serializeError(error),
     });
 
     throw authError(error);
   }
 
   if (error) {
-    console.error("[AUTH] Supabase signUp returned error", {
-      name: error?.name,
-      code: error?.code,
-      error_code: error?.error_code,
-      message: error?.message,
-      status: error?.status,
+    logAuth("error", "signup_supabase_rejected", {
+      error: serializeError(error),
     });
   } else {
-    console.log("[AUTH] Supabase signUp succeeded", {
+    logAuth("info", "signup_supabase_succeeded", {
       userId: data?.user?.id,
       hasSession: Boolean(data?.session),
     });
@@ -164,7 +195,7 @@ export async function signup(input) {
   }
 
   try {
-    console.log("[AUTH] updating profile", {
+    logAuth("info", "signup_profile_update_started", {
       userId: data.user.id,
     });
 
@@ -172,25 +203,24 @@ export async function signup(input) {
       universitySlug: input.universitySlug ?? null,
     });
 
-    console.log("[AUTH] profile updated", {
+    logAuth("info", "signup_profile_update_succeeded", {
       userId: data.user.id,
     });
   } catch (error) {
-    console.error("[AUTH] updateProfile failed", {
-      name: error?.name,
-      code: error?.code,
-      message: error?.message,
-      status: error?.status,
-      stack: error?.stack,
+    logAuth("error", "signup_profile_update_failed", {
+      userId: data.user.id,
+      error: serializeError(error),
+      probableCause: error?.code === "PROFILE_NOT_FOUND"
+        ? "auth.users profile trigger did not create public.profiles row"
+        : undefined,
     });
 
     await supabaseAdmin.auth.admin
       .deleteUser(data.user.id)
       .catch((deleteError) => {
-        console.error("[AUTH] cleanup deleteUser failed", {
-          name: deleteError?.name,
-          code: deleteError?.code,
-          message: deleteError?.message,
+        logAuth("error", "signup_cleanup_delete_user_failed", {
+          userId: data.user.id,
+          error: serializeError(deleteError),
         });
       });
 
@@ -201,7 +231,7 @@ export async function signup(input) {
     throw authError(error);
   }
 
-  console.log("[AUTH] signup completed", {
+  logAuth("info", "signup_completed", {
     userId: data.user.id,
   });
 
