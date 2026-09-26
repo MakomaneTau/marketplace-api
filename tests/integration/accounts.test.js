@@ -36,9 +36,12 @@ vi.mock("../../src/services/profile.service.js", () => {
   };
 });
 
+vi.mock("../../src/services/admin.service.js", () => ({ isAdmin: vi.fn() }));
+
 import app from "../../src/app.js";
 import * as authService from "../../src/services/auth.service.js";
 import * as profileService from "../../src/services/profile.service.js";
+import * as adminService from "../../src/services/admin.service.js";
 
 const user = {
   id: "123e4567-e89b-42d3-a456-426614174000",
@@ -154,13 +157,14 @@ describe("account API", () => {
   it("returns the authenticated user and marketplace profile", async () => {
     authenticate();
     profileService.getProfile.mockResolvedValue(profile);
+    adminService.isAdmin.mockResolvedValue(false);
 
     const response = await request(app)
       .get("/api/v1/auth/me")
       .set("Authorization", "Bearer access-token");
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ data: { user, profile } });
+    expect(response.body).toEqual({ data: { user, profile: { ...profile, isAdmin: false } } });
   });
 
   it("updates allowed profile fields", async () => {

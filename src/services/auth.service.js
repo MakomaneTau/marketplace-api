@@ -116,10 +116,31 @@ function sessionDto(data) {
 export async function getUserFromAccessToken(accessToken) {
   const { data, error } = await supabaseAuth.auth.getUser(accessToken);
 
+  if (error || !data?.user) return { user: null, error };
+
+  const restriction = await supabaseAdmin
+    .from("account_restrictions")
+    .select("user_id")
+    .eq("user_id", data.user.id)
+    .maybeSingle();
+  if (restriction.error) {
+    throw new AuthServiceError(503, "AUTH_SERVICE_UNAVAILABLE", "Authentication is temporarily unavailable.");
+  }
+  if (restriction.data) {
+    return { user: null, error: new AuthServiceError(403, "ACCOUNT_SUSPENDED", "This account has been suspended. Contact support if you think this is a mistake.") };
+  }
+
   return {
-    user: data?.user ?? null,
-    error,
+    user: data.user,
+    error: null,
   };
+}
+
+async function ensureAccountActive(userId) {
+  const { data, error } = await supabaseAdmin.from("account_restrictions")
+    .select("user_id").eq("user_id", userId).maybeSingle();
+  if (error) throw new AuthServiceError(503, "AUTH_SERVICE_UNAVAILABLE", "Authentication is temporarily unavailable.");
+  if (data) throw new AuthServiceError(403, "ACCOUNT_SUSPENDED", "This account has been suspended. Contact support if you think this is a mistake.");
 }
 
 export async function signup(input) {
@@ -245,6 +266,7 @@ export async function login({ email, password }) {
   });
 
   if (error || !data.user) throw authError(error);
+  await ensureAccountActive(data.user.id);
   return sessionDto(data);
 }
 
@@ -260,6 +282,7 @@ export async function refresh(refreshToken) {
       "The refresh token is invalid or expired."
     );
   }
+  await ensureAccountActive(data.user.id);
   return sessionDto(data);
 }
 

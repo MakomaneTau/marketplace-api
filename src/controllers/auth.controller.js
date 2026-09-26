@@ -2,6 +2,7 @@ import { sendData } from "../http/responses.js";
 import { sendError } from "../http/responses.js";
 import * as authService from "../services/auth.service.js";
 import * as profileService from "../services/profile.service.js";
+import { AdminServiceError, isAdmin } from "../services/admin.service.js";
 import {
   parseBearerToken,
   validateForgotPassword,
@@ -23,7 +24,8 @@ function validationError(res, details) {
 function handleError(res, error) {
   if (
     error instanceof authService.AuthServiceError ||
-    error instanceof profileService.ProfileServiceError
+    error instanceof profileService.ProfileServiceError ||
+    error instanceof AdminServiceError
   ) {
     return sendError(res, {
       status: error.status,
@@ -41,7 +43,7 @@ function handleError(res, error) {
 export async function getCurrentUser(req, res) {
   try {
     const profile = await profileService.getProfile(req.user.id);
-    return sendData(res, { user: req.user, profile });
+    return sendData(res, { user: req.user, profile: { ...profile, isAdmin: await isAdmin(req.user.id) } });
   } catch (error) {
     return handleError(res, error);
   }

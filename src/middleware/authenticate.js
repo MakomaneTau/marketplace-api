@@ -30,6 +30,9 @@ export async function authenticate(req, res, next) {
   try {
     const { user, error } = await getUserFromAccessToken(token);
 
+    if (error?.code === "ACCOUNT_SUSPENDED") {
+      return sendError(res, { status: 403, code: error.code, message: error.message });
+    }
     if (error || !user) {
       return sendUnauthorized(
         res,
