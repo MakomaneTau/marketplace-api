@@ -24,6 +24,13 @@ function unavailable() {
   return new ShopServiceError(503, "SHOP_SERVICE_UNAVAILABLE", "Shops are temporarily unavailable.");
 }
 
+function shopError(error) {
+  if (error?.message?.includes("SELLER_APPROVAL_REQUIRED")) {
+    return new ShopServiceError(403, "SELLER_APPROVAL_REQUIRED", "Your seven-day selling period has ended. Submit verification and wait for admin approval before opening your shop.");
+  }
+  return unavailable();
+}
+
 async function requireSeller(userId) {
   const { data, error } = await supabaseAdmin.from("profiles").select("role").eq("id", userId).maybeSingle();
   if (error) throw unavailable();
@@ -51,7 +58,7 @@ export async function getSellerShop(userId) {
 }
 
 export async function getPublicShop(slug) {
-  const { data, error } = await supabaseAdmin.from("shops").select(SHOP_SELECT).eq("slug", slug).eq("is_open", true).maybeSingle();
+  const { data, error } = await supabaseAdmin.from("shops").select(SHOP_SELECT).eq("slug", slug).eq("is_open", true).eq("sellable", true).maybeSingle();
   if (error) throw unavailable();
   if (!data) throw new ShopServiceError(404, "SHOP_NOT_FOUND", "Shop not found.");
   return data;
@@ -67,7 +74,7 @@ export async function createShop(userId, input) {
     const slug = attempt === 0 ? baseSlug : `${baseSlug}-${randomUUID().slice(0, 8)}`;
     const { data, error } = await supabaseAdmin.from("shops").insert({ owner_id: userId, slug, ...inputToRow(input) }).select(SHOP_SELECT).single();
     if (!error) return data;
-    if (error.code !== "23505") throw unavailable();
+    if (error.code !== "23505") throw shopError(error);
   }
   throw new ShopServiceError(409, "SHOP_SLUG_CONFLICT", "A unique shop URL could not be generated.");
 }
@@ -76,7 +83,7 @@ export async function updateShop(userId, input) {
   const shop = await getSellerShop(userId);
   if (!shop) throw new ShopServiceError(404, "SHOP_NOT_FOUND", "Shop not found.");
   const { data, error } = await supabaseAdmin.from("shops").update(inputToRow(input)).eq("id", shop.id).eq("owner_id", userId).select(SHOP_SELECT).single();
-  if (error) throw unavailable();
+  if (error) throw shopError(error);
   return data;
 }
 

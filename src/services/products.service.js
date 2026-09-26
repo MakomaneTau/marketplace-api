@@ -19,6 +19,7 @@ export class ProductServiceError extends Error {
 }
 
 function databaseError(error) {
+  if (error?.message?.includes("SELLER_APPROVAL_REQUIRED")) return new ProductServiceError(403, "SELLER_APPROVAL_REQUIRED", "Your seven-day selling period has ended. Submit verification and wait for admin approval before publishing listings.");
   if (error?.code === "23503") return new ProductServiceError(400, "PRODUCT_REFERENCE_INVALID", "The shop or category does not exist.");
   if (error?.code === "23514") return new ProductServiceError(400, "PRODUCT_CONSTRAINT_VIOLATION", "The product does not satisfy the listing requirements.");
   return new ProductServiceError(503, "PRODUCT_SERVICE_UNAVAILABLE", "Products are temporarily unavailable.");
@@ -95,7 +96,8 @@ export async function listProducts(options = {}) {
     .from("products")
     .select(PRODUCT_SELECT, { count: "exact" })
     .eq("status", "active")
-    .eq("shops.is_open", true);
+    .eq("shops.is_open", true)
+    .eq("shops.sellable", true);
 
   if (options.q) {
     const value = escapeLike(options.q);
@@ -151,6 +153,7 @@ export async function getProduct(productId) {
     .eq("id", productId)
     .eq("status", "active")
     .eq("shops.is_open", true)
+    .eq("shops.sellable", true)
     .maybeSingle();
 
   if (error) throw databaseError(error);

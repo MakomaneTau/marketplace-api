@@ -15,6 +15,7 @@ export class OrderServiceError extends Error {
 function mapError(error) {
   const code = error?.message?.match(/ORDER_[A-Z_]+/)?.[0];
   const errors = {
+    SELLER_APPROVAL_REQUIRED: [409, "This seller must complete verification and receive admin approval before accepting new orders."],
     ORDER_ITEMS_INVALID: [400, "Order items are invalid."],
     ORDER_PRODUCT_UNAVAILABLE: [409, "One or more products are unavailable or lack stock."],
     ORDER_SINGLE_SHOP_REQUIRED: [400, "All products in an order must belong to one shop and currency."],
