@@ -1,14 +1,9 @@
+import { ApiError } from "../errors/api-error.js";
 import { supabaseAdmin } from "../config/supabase.js";
 
 const CURRENT_VERSION = 1;
 
-export class OnboardingServiceError extends Error {
-  constructor() {
-    super("Getting started information is temporarily unavailable.");
-    this.status = 503;
-    this.code = "ONBOARDING_UNAVAILABLE";
-  }
-}
+export class OnboardingServiceError extends ApiError {}
 
 function ensureNoError(result) {
   if (result.error) throw new OnboardingServiceError();

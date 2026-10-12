@@ -1,3 +1,4 @@
+import { createServiceErrorHandler } from "../http/service-error.js";
 import { sendData, sendError } from "../http/responses.js";
 import * as referenceService from "../services/reference.service.js";
 import {
@@ -14,21 +15,9 @@ function validationError(res, details) {
   });
 }
 
-function serviceError(res, error) {
-  if (error instanceof referenceService.ReferenceServiceError) {
-    return sendError(res, {
-      status: error.status,
-      code: error.code,
-      message: error.message,
-    });
-  }
-
-  return sendError(res, {
-    status: 500,
-    code: "INTERNAL_SERVER_ERROR",
-    message: "An unexpected error occurred.",
-  });
-}
+const serviceError = createServiceErrorHandler(
+  (error) => error instanceof referenceService.ReferenceServiceError,
+);
 
 export async function listCategories(req, res) {
   const errors = validateReferenceQuery(req.query, { allowFeatured: true });

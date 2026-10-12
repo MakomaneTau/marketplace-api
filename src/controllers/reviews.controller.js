@@ -1,4 +1,5 @@
-import * as s from "../services/reviews.service.js";
+import { createServiceErrorHandler } from "../http/service-error.js";
+import * as reviewsService from "../services/reviews.service.js";
 import { sendData, sendError } from "../http/responses.js";
 const U = /^[0-9a-f-]{36}$/i;
 const bad = (r, d) =>
@@ -8,15 +9,9 @@ const bad = (r, d) =>
     message: "Invalid review data.",
     details: d,
   });
-function fail(r, e) {
-  return e instanceof s.ReviewServiceError
-    ? sendError(r, { status: e.status, code: e.code, message: e.message })
-    : sendError(r, {
-        status: 500,
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Unexpected error.",
-      });
-}
+const fail = createServiceErrorHandler(
+  (error) => error instanceof reviewsService.ReviewServiceError,
+);
 const opts = (q) => ({
   page: q.page ? Number(q.page) : 1,
   limit: q.limit ? Number(q.limit) : 20,
@@ -47,9 +42,13 @@ export async function createReview(req, res) {
     e.push({ field: "comment", message: "must be 10-1000 characters" });
   if (e.length) return bad(res, e);
   try {
-    return sendData(res, await s.createReview(req.user.id, req.params.id, i), {
-      status: 201,
-    });
+    return sendData(
+      res,
+      await reviewsService.createReview(req.user.id, req.params.id, i),
+      {
+        status: 201,
+      },
+    );
   } catch (x) {
     return fail(res, x);
   }
@@ -60,7 +59,7 @@ export async function productReviews(req, res) {
   try {
     return page(
       res,
-      await s.listProductReviews(req.params.id, opts(req.query)),
+      await reviewsService.listProductReviews(req.params.id, opts(req.query)),
     );
   } catch (e) {
     return fail(res, e);
@@ -68,7 +67,10 @@ export async function productReviews(req, res) {
 }
 export async function shopReviews(req, res) {
   try {
-    return page(res, await s.listShopReviews(req.params.slug, opts(req.query)));
+    return page(
+      res,
+      await reviewsService.listShopReviews(req.params.slug, opts(req.query)),
+    );
   } catch (e) {
     return fail(res, e);
   }

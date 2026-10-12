@@ -1,3 +1,4 @@
+import { ApiError } from "../errors/api-error.js";
 import { randomUUID } from "node:crypto";
 import { supabaseAdmin } from "../config/supabase.js";
 import {
@@ -15,14 +16,7 @@ const SHOP_SELECT = `
   )
 `;
 
-export class ShopServiceError extends Error {
-  constructor(status, code, message) {
-    super(message);
-    this.name = "ShopServiceError";
-    this.status = status;
-    this.code = code;
-  }
-}
+export class ShopServiceError extends ApiError {}
 
 function unavailable() {
   return new ShopServiceError(

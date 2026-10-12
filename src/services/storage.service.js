@@ -1,3 +1,4 @@
+import { ApiError } from "../errors/api-error.js";
 import { randomUUID } from "node:crypto";
 import { supabaseAdmin } from "../config/supabase.js";
 
@@ -27,14 +28,7 @@ const fileTypes = {
   },
 };
 
-export class StorageServiceError extends Error {
-  constructor(status, code, message) {
-    super(message);
-    this.name = "StorageServiceError";
-    this.status = status;
-    this.code = code;
-  }
-}
+export class StorageServiceError extends ApiError {}
 
 export function validateImage(file) {
   const type = fileTypes[file?.mimetype];

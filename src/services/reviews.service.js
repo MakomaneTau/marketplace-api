@@ -1,11 +1,6 @@
+import { ApiError } from "../errors/api-error.js";
 import { supabaseAdmin } from "../config/supabase.js";
-export class ReviewServiceError extends Error {
-  constructor(status, code, message) {
-    super(message);
-    this.status = status;
-    this.code = code;
-  }
-}
+export class ReviewServiceError extends ApiError {}
 const SELECT =
   "*, reviewer:profiles!reviews_reviewer_id_fkey(id,display_name,avatar_url), product:products(id,title,image_urls), shop:shops(id,name,slug)";
 function error(e) {

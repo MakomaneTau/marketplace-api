@@ -1,17 +1,12 @@
-import * as s from "../services/insights.service.js";
+import { createServiceErrorHandler } from "../http/service-error.js";
+import * as insightsService from "../services/insights.service.js";
 import { sendData, sendError } from "../http/responses.js";
-function fail(r, e) {
-  return e instanceof s.InsightServiceError
-    ? sendError(r, { status: e.status, code: e.code, message: e.message })
-    : sendError(r, {
-        status: 500,
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Unexpected error.",
-      });
-}
+const fail = createServiceErrorHandler(
+  (error) => error instanceof insightsService.InsightServiceError,
+);
 export async function dashboard(req, res) {
   try {
-    return sendData(res, await s.dashboard(req.user.id));
+    return sendData(res, await insightsService.dashboard(req.user.id));
   } catch (e) {
     return fail(res, e);
   }
@@ -28,7 +23,7 @@ export async function analytics(req, res) {
       message: "days must be 7, 30, 90, or 365.",
     });
   try {
-    return sendData(res, await s.analytics(req.user.id, days));
+    return sendData(res, await insightsService.analytics(req.user.id, days));
   } catch (e) {
     return fail(res, e);
   }

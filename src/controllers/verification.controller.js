@@ -1,24 +1,13 @@
+import { createServiceErrorHandler } from "../http/service-error.js";
 import { sendData, sendError } from "../http/responses.js";
 import { StorageServiceError } from "../services/storage.service.js";
 import * as verificationService from "../services/verification.service.js";
 
-function handleError(res, error) {
-  if (
+const handleError = createServiceErrorHandler(
+  (error) =>
     error instanceof verificationService.VerificationServiceError ||
-    error instanceof StorageServiceError
-  ) {
-    return sendError(res, {
-      status: error.status,
-      code: error.code,
-      message: error.message,
-    });
-  }
-  return sendError(res, {
-    status: 500,
-    code: "INTERNAL_SERVER_ERROR",
-    message: "An unexpected error occurred.",
-  });
-}
+    error instanceof StorageServiceError,
+);
 
 export async function getSellerVerification(req, res) {
   try {

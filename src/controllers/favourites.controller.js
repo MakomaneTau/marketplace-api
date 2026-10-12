@@ -1,3 +1,4 @@
+import { createServiceErrorHandler } from "../http/service-error.js";
 import * as favouritesService from "../services/favourites.service.js";
 import { sendData, sendError } from "../http/responses.js";
 import { validateProductId } from "../validators/products.validator.js";
@@ -11,20 +12,9 @@ function validation(res, details) {
   });
 }
 
-function handleError(res, error) {
-  if (error instanceof favouritesService.FavouriteServiceError) {
-    return sendError(res, {
-      status: error.status,
-      code: error.code,
-      message: error.message,
-    });
-  }
-  return sendError(res, {
-    status: 500,
-    code: "INTERNAL_SERVER_ERROR",
-    message: "An unexpected error occurred.",
-  });
-}
+const handleError = createServiceErrorHandler(
+  (error) => error instanceof favouritesService.FavouriteServiceError,
+);
 
 function pagination(query) {
   const errors = [];

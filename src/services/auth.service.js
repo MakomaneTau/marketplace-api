@@ -1,16 +1,10 @@
 import { config } from "../config/env.js";
+import { ApiError } from "../errors/api-error.js";
 import { supabaseAuth } from "../config/supabase-auth.js";
 import { supabaseAdmin } from "../config/supabase.js";
 import { resolveUniversityId, updateProfile } from "./profile.service.js";
 
-export class AuthServiceError extends Error {
-  constructor(status, code, message) {
-    super(message);
-    this.name = "AuthServiceError";
-    this.status = status;
-    this.code = code;
-  }
-}
+export class AuthServiceError extends ApiError {}
 
 function authError(error, fallbackCode = "AUTH_SERVICE_UNAVAILABLE") {
   const code = error?.error_code ?? error?.code;

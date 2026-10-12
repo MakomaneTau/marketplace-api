@@ -72,6 +72,9 @@ try {
 } finally {
   for (const user of users) {
     const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id);
-    if (error) throw error;
+    if (error) {
+      console.error("Failed to remove smoke-test account:", error.message);
+      process.exitCode = 1;
+    }
   }
 }

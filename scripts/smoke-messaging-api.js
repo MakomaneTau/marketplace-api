@@ -8,9 +8,11 @@ import { supabaseAdmin as db } from "../src/config/supabase.js";
 // All messages and shop changes belong to disposable test accounts.
 const users = [];
 async function call(user, method, path, body, status = 200) {
-  let operation = request(app)
-    [method](`/api/v1${path}`)
-    .set("Authorization", `Bearer ${user.token}`);
+  const client = request(app);
+  let operation = client[method](`/api/v1${path}`).set(
+    "Authorization",
+    `Bearer ${user.token}`,
+  );
   if (body) operation = operation.send(body);
   const response = await operation;
   assert.equal(response.status, status, JSON.stringify(response.body.error));
@@ -213,6 +215,9 @@ try {
 } finally {
   for (const user of users) {
     const { error } = await db.auth.admin.deleteUser(user.id);
-    if (error) throw error;
+    if (error) {
+      console.error("Failed to remove smoke-test account:", error.message);
+      process.exitCode = 1;
+    }
   }
 }

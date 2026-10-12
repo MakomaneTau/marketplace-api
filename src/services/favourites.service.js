@@ -1,3 +1,4 @@
+import { ApiError } from "../errors/api-error.js";
 import { supabaseAdmin } from "../config/supabase.js";
 
 const FAVOURITE_SELECT = `
@@ -9,14 +10,7 @@ const FAVOURITE_SELECT = `
   )
 `;
 
-export class FavouriteServiceError extends Error {
-  constructor(status, code, message) {
-    super(message);
-    this.name = "FavouriteServiceError";
-    this.status = status;
-    this.code = code;
-  }
-}
+export class FavouriteServiceError extends ApiError {}
 
 function unavailable() {
   return new FavouriteServiceError(

@@ -1,35 +1,20 @@
-import * as s from "../services/settings.service.js";
+import { createServiceErrorHandler } from "../http/service-error.js";
+import * as settingsService from "../services/settings.service.js";
 import { sendData, sendError } from "../http/responses.js";
-const fields = new Set([
-  "notify_new_orders",
-  "notify_new_messages",
-  "notify_listing_updates",
-  "notify_marketplace_tips",
-]);
-function fail(r, e) {
-  return sendError(r, {
-    status: e instanceof s.SettingsServiceError ? e.status : 500,
-    code: e.code || "INTERNAL_SERVER_ERROR",
-    message: e.message || "Unexpected error.",
-  });
-}
+import { validateUpdateSettings } from "../validators/settings.validator.js";
+const fail = createServiceErrorHandler(
+  (error) => error instanceof settingsService.SettingsServiceError,
+);
 export async function getSettings(req, res) {
   try {
-    return sendData(res, await s.getSettings(req.user.id));
+    return sendData(res, await settingsService.getSettings(req.user.id));
   } catch (e) {
     return fail(res, e);
   }
 }
 export async function updateSettings(req, res) {
-  const input = req.body || {},
-    errors = [];
-  if (!Object.keys(input).length)
-    errors.push({ field: "body", message: "must contain a preference" });
-  for (const [k, v] of Object.entries(input)) {
-    if (!fields.has(k)) errors.push({ field: k, message: "is not allowed" });
-    else if (typeof v !== "boolean")
-      errors.push({ field: k, message: "must be boolean" });
-  }
+  const input = req.body || {};
+  const errors = validateUpdateSettings(input);
   if (errors.length)
     return sendError(res, {
       status: 400,
@@ -38,7 +23,10 @@ export async function updateSettings(req, res) {
       details: errors,
     });
   try {
-    return sendData(res, await s.updateSettings(req.user.id, input));
+    return sendData(
+      res,
+      await settingsService.updateSettings(req.user.id, input),
+    );
   } catch (e) {
     return fail(res, e);
   }

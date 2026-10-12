@@ -86,7 +86,6 @@ try {
     userId,
   );
   productId = draft.id;
-
   const png = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 0]);
   const withImage = await addProductImage(productId, userId, {
     buffer: png,

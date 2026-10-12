@@ -1,3 +1,4 @@
+import { ApiError } from "../errors/api-error.js";
 import { supabaseAdmin } from "../config/supabase.js";
 import {
   publicStoragePath,
@@ -13,14 +14,7 @@ const PRODUCT_SELECT = `
   shop:shops!inner(id, name, slug, logo_url, is_open, rating, review_count)
 `;
 
-export class ProductServiceError extends Error {
-  constructor(status, code, message) {
-    super(message);
-    this.name = "ProductServiceError";
-    this.status = status;
-    this.code = code;
-  }
-}
+export class ProductServiceError extends ApiError {}
 
 function databaseError(error) {
   if (error?.message?.includes("SELLER_APPROVAL_REQUIRED"))

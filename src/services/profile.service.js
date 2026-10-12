@@ -1,4 +1,5 @@
 import { config } from "../config/env.js";
+import { ApiError } from "../errors/api-error.js";
 import { supabaseAdmin } from "../config/supabase.js";
 
 const PROFILE_SELECT = `
@@ -7,14 +8,7 @@ const PROFILE_SELECT = `
   campus:campuses(id, name, city, province)
 `;
 
-export class ProfileServiceError extends Error {
-  constructor(status, code, message) {
-    super(message);
-    this.name = "ProfileServiceError";
-    this.status = status;
-    this.code = code;
-  }
-}
+export class ProfileServiceError extends ApiError {}
 
 function unavailable() {
   return new ProfileServiceError(

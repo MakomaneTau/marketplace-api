@@ -1,4 +1,9 @@
-import { supabaseAdmin } from "../config/supabase.js";
+import * as reportsService from "../services/reports.service.js";
+import { createServiceErrorHandler } from "../http/service-error.js";
+
+const handleError = createServiceErrorHandler(
+  (error) => error instanceof reportsService.ReportServiceError,
+);
 import { sendData, sendError } from "../http/responses.js";
 
 const uuid =
@@ -39,51 +44,26 @@ export async function submitReport(req, res) {
       details: errors,
     });
 
-  const { data, error } = await supabaseAdmin
-    .from("safety_reports")
-    .insert({
-      reporter_id: req.user.id,
-      category,
-      details: details.trim(),
-      subject_user_id: subjectUserId || null,
-      product_id: productId || null,
-    })
-    .select("id,created_at,status")
-    .single();
-  if (error)
-    return sendError(res, {
-      status: 503,
-      code: "REPORT_SERVICE_UNAVAILABLE",
-      message: "Your report could not be submitted. Please try again.",
-    });
-  return sendData(
-    res,
-    { id: data.id, createdAt: data.created_at, status: data.status },
-    { status: 201 },
-  );
+  try {
+    return sendData(
+      res,
+      await reportsService.submitReport(req.user.id, {
+        category,
+        details,
+        subjectUserId,
+        productId,
+      }),
+      { status: 201 },
+    );
+  } catch (error) {
+    return handleError(res, error);
+  }
 }
 
 export async function myReports(req, res) {
-  const { data, error } = await supabaseAdmin
-    .from("safety_reports")
-    .select("id,category,status,created_at,resolution_note")
-    .eq("reporter_id", req.user.id)
-    .order("created_at", { ascending: false })
-    .limit(50);
-  if (error)
-    return sendError(res, {
-      status: 503,
-      code: "REPORT_SERVICE_UNAVAILABLE",
-      message: "Reports are temporarily unavailable.",
-    });
-  return sendData(
-    res,
-    data.map((row) => ({
-      id: row.id,
-      category: row.category,
-      status: row.status,
-      createdAt: row.created_at,
-      resolutionNote: row.resolution_note,
-    })),
-  );
+  try {
+    return sendData(res, await reportsService.myReports(req.user.id));
+  } catch (error) {
+    return handleError(res, error);
+  }
 }

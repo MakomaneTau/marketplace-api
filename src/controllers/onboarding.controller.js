@@ -1,16 +1,10 @@
+import { createServiceErrorHandler } from "../http/service-error.js";
 import { sendData, sendError } from "../http/responses.js";
 import * as onboardingService from "../services/onboarding.service.js";
 
-function handleError(res, error) {
-  return sendError(res, {
-    status:
-      error instanceof onboardingService.OnboardingServiceError
-        ? error.status
-        : 500,
-    code: error.code || "INTERNAL_SERVER_ERROR",
-    message: error.message || "Unexpected error.",
-  });
-}
+const handleError = createServiceErrorHandler(
+  (error) => error instanceof onboardingService.OnboardingServiceError,
+);
 
 export async function getOnboarding(req, res) {
   try {

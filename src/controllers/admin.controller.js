@@ -1,22 +1,13 @@
+import { createServiceErrorHandler } from "../http/service-error.js";
 import { sendData, sendError } from "../http/responses.js";
 import * as service from "../services/admin.service.js";
 
 const uuid =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function failure(res, error) {
-  return sendError(res, {
-    status: error instanceof service.AdminServiceError ? error.status : 500,
-    code:
-      error instanceof service.AdminServiceError
-        ? error.code
-        : "INTERNAL_SERVER_ERROR",
-    message:
-      error instanceof service.AdminServiceError
-        ? error.message
-        : "An unexpected error occurred.",
-  });
-}
+const failure = createServiceErrorHandler(
+  (error) => error instanceof service.AdminServiceError,
+);
 
 function invalid(res, field, message) {
   return sendError(res, {

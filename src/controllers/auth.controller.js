@@ -1,5 +1,5 @@
-import { sendData } from "../http/responses.js";
-import { sendError } from "../http/responses.js";
+import { createServiceErrorHandler } from "../http/service-error.js";
+import { sendData, sendError } from "../http/responses.js";
 import * as authService from "../services/auth.service.js";
 import * as profileService from "../services/profile.service.js";
 import { AdminServiceError, isAdmin } from "../services/admin.service.js";
@@ -21,24 +21,12 @@ function validationError(res, details) {
   });
 }
 
-function handleError(res, error) {
-  if (
+const handleError = createServiceErrorHandler(
+  (error) =>
     error instanceof authService.AuthServiceError ||
     error instanceof profileService.ProfileServiceError ||
-    error instanceof AdminServiceError
-  ) {
-    return sendError(res, {
-      status: error.status,
-      code: error.code,
-      message: error.message,
-    });
-  }
-  return sendError(res, {
-    status: 500,
-    code: "INTERNAL_SERVER_ERROR",
-    message: "An unexpected error occurred.",
-  });
-}
+    error instanceof AdminServiceError,
+);
 
 export async function getCurrentUser(req, res) {
   try {

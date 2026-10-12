@@ -1,3 +1,4 @@
+import { createServiceErrorHandler } from "../http/service-error.js";
 import { sendData, sendError } from "../http/responses.js";
 import { StorageServiceError } from "../services/storage.service.js";
 import * as shopsService from "../services/shops.service.js";
@@ -8,23 +9,11 @@ import {
 } from "../validators/shops.validator.js";
 import { validateSlug } from "../validators/reference.validator.js";
 
-function fail(res, error) {
-  if (
+const fail = createServiceErrorHandler(
+  (error) =>
     error instanceof shopsService.ShopServiceError ||
-    error instanceof StorageServiceError
-  ) {
-    return sendError(res, {
-      status: error.status,
-      code: error.code,
-      message: error.message,
-    });
-  }
-  return sendError(res, {
-    status: 500,
-    code: "INTERNAL_SERVER_ERROR",
-    message: "An unexpected error occurred.",
-  });
-}
+    error instanceof StorageServiceError,
+);
 
 function invalid(res, details) {
   return sendError(res, {

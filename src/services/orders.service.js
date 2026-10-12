@@ -1,3 +1,4 @@
+import { ApiError } from "../errors/api-error.js";
 import { supabaseAdmin } from "../config/supabase.js";
 
 const ORDER_SELECT = `
@@ -8,14 +9,7 @@ const ORDER_SELECT = `
   items:order_items(id, product_id, product_name, unit_price, quantity, line_total)
 `;
 
-export class OrderServiceError extends Error {
-  constructor(status, code, message) {
-    super(message);
-    this.name = "OrderServiceError";
-    this.status = status;
-    this.code = code;
-  }
-}
+export class OrderServiceError extends ApiError {}
 
 function mapError(error) {
   const code = error?.message?.match(/ORDER_[A-Z_]+/)?.[0];

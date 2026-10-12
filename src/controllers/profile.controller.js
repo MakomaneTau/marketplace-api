@@ -1,21 +1,11 @@
+import { createServiceErrorHandler } from "../http/service-error.js";
 import { sendData, sendError } from "../http/responses.js";
 import * as profileService from "../services/profile.service.js";
 import { validateProfileUpdate } from "../validators/profile.validator.js";
 
-function handleError(res, error) {
-  if (error instanceof profileService.ProfileServiceError) {
-    return sendError(res, {
-      status: error.status,
-      code: error.code,
-      message: error.message,
-    });
-  }
-  return sendError(res, {
-    status: 500,
-    code: "INTERNAL_SERVER_ERROR",
-    message: "An unexpected error occurred.",
-  });
-}
+const handleError = createServiceErrorHandler(
+  (error) => error instanceof profileService.ProfileServiceError,
+);
 
 export async function getProfile(req, res) {
   try {

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.hoisted(() => {
-  process.env.SUPABASE_URL ||= "http://127.0.0.1:54321";
+  process.env.SUPABASE_URL ||= "http://127.0.0.1:55321";
   process.env.SUPABASE_SECRET_KEY ||= "test-secret-key";
 });
 import {

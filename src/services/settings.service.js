@@ -1,35 +1,32 @@
+import { ApiError } from "../errors/api-error.js";
 import { supabaseAdmin } from "../config/supabase.js";
-export class SettingsServiceError extends Error {
+export class SettingsServiceError extends ApiError {
   constructor() {
-    super("Settings are temporarily unavailable.");
-    this.status = 503;
-    this.code = "SETTINGS_UNAVAILABLE";
+    super(503, "SETTINGS_UNAVAILABLE", "Settings are temporarily unavailable.");
   }
 }
-const defaults = {
+const DEFAULT_PREFERENCES = {
   notify_new_orders: true,
   notify_new_messages: true,
   notify_listing_updates: true,
   notify_marketplace_tips: false,
 };
-export async function getSettings(user) {
+const PREFERENCE_COLUMNS = Object.keys(DEFAULT_PREFERENCES).join(",");
+
+export async function getSettings(userId) {
   const { data, error } = await supabaseAdmin
     .from("user_preferences")
-    .select(
-      "notify_new_orders,notify_new_messages,notify_listing_updates,notify_marketplace_tips",
-    )
-    .eq("user_id", user)
+    .select(PREFERENCE_COLUMNS)
+    .eq("user_id", userId)
     .maybeSingle();
   if (error) throw new SettingsServiceError();
-  return data || defaults;
+  return data || { ...DEFAULT_PREFERENCES };
 }
-export async function updateSettings(user, input) {
+export async function updateSettings(userId, input) {
   const { data, error } = await supabaseAdmin
     .from("user_preferences")
-    .upsert({ user_id: user, ...input }, { onConflict: "user_id" })
-    .select(
-      "notify_new_orders,notify_new_messages,notify_listing_updates,notify_marketplace_tips",
-    )
+    .upsert({ user_id: userId, ...input }, { onConflict: "user_id" })
+    .select(PREFERENCE_COLUMNS)
     .single();
   if (error) throw new SettingsServiceError();
   return data;

@@ -1,3 +1,4 @@
+import { createServiceErrorHandler } from "../http/service-error.js";
 import * as service from "../services/messaging.service.js";
 import { sendData, sendError } from "../http/responses.js";
 import { validateProductId } from "../validators/products.validator.js";
@@ -10,19 +11,9 @@ const invalid = (res, details) =>
     message: "The request contains invalid messaging data.",
     details,
   });
-function fail(res, e) {
-  if (e instanceof service.MessagingServiceError)
-    return sendError(res, {
-      status: e.status,
-      code: e.code,
-      message: e.message,
-    });
-  return sendError(res, {
-    status: 500,
-    code: "INTERNAL_SERVER_ERROR",
-    message: "An unexpected error occurred.",
-  });
-}
+const fail = createServiceErrorHandler(
+  (error) => error instanceof service.MessagingServiceError,
+);
 export async function listConversations(req, res) {
   try {
     return sendData(res, await service.listConversations(req.user.id));

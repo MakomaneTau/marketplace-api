@@ -1,11 +1,6 @@
+import { ApiError } from "../errors/api-error.js";
 import { supabaseAdmin } from "../config/supabase.js";
-export class InsightServiceError extends Error {
-  constructor(status, code, message) {
-    super(message);
-    this.status = status;
-    this.code = code;
-  }
-}
+export class InsightServiceError extends ApiError {}
 const fail = () =>
   new InsightServiceError(
     503,

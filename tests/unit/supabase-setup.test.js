@@ -31,7 +31,7 @@ describe("local Supabase setup", () => {
 
     let previousIndex = -1;
     for (const seedPath of expectedPaths) {
-      const index = config.indexOf(`\"${seedPath}\"`);
+      const index = config.indexOf(`"${seedPath}"`);
       expect(index, `${seedPath} must be configured`).toBeGreaterThan(
         previousIndex,
       );

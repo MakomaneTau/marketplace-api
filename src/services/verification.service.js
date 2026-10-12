@@ -1,3 +1,4 @@
+import { ApiError } from "../errors/api-error.js";
 import { randomUUID } from "node:crypto";
 import { supabaseAdmin } from "../config/supabase.js";
 import {
@@ -8,14 +9,7 @@ import {
 
 const BUCKET = "verification-documents";
 
-export class VerificationServiceError extends Error {
-  constructor(status, code, message) {
-    super(message);
-    this.name = "VerificationServiceError";
-    this.status = status;
-    this.code = code;
-  }
-}
+export class VerificationServiceError extends ApiError {}
 
 function unavailable() {
   return new VerificationServiceError(

@@ -1,13 +1,8 @@
+import { ApiError } from "../errors/api-error.js";
 import { supabaseAdmin } from "../config/supabase.js";
 import { browserSignedUrl } from "./signed-url.service.js";
 
-export class AdminServiceError extends Error {
-  constructor(status, code, message) {
-    super(message);
-    this.status = status;
-    this.code = code;
-  }
-}
+export class AdminServiceError extends ApiError {}
 
 function unavailable() {
   return new AdminServiceError(

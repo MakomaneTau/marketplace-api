@@ -1,3 +1,4 @@
+import { createServiceErrorHandler } from "../http/service-error.js";
 import * as productsService from "../services/products.service.js";
 import {
   validateCreateProduct,
@@ -16,20 +17,9 @@ function sendValidationError(res, details) {
   });
 }
 
-function handleError(res, error) {
-  if (error instanceof productsService.ProductServiceError) {
-    return sendError(res, {
-      status: error.status,
-      code: error.code,
-      message: error.message,
-    });
-  }
-  return sendError(res, {
-    status: 500,
-    code: "INTERNAL_SERVER_ERROR",
-    message: "An unexpected error occurred.",
-  });
-}
+const handleError = createServiceErrorHandler(
+  (error) => error instanceof productsService.ProductServiceError,
+);
 
 export async function listProducts(req, res) {
   const errors = validateProductListQuery(req.query);

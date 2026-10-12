@@ -1,13 +1,8 @@
+import { ApiError } from "../errors/api-error.js";
 import { supabaseAdmin } from "../config/supabase.js";
 
 const CONVERSATION_SELECT = `*, product:products(id,title,slug,price,image_urls,status), shop:shops(id,name,slug,logo_url), buyer:profiles!conversations_buyer_id_fkey(id,display_name,avatar_url,university:universities(id,name,acronym)), seller:profiles!conversations_seller_id_fkey(id,display_name,avatar_url,university:universities(id,name,acronym)), messages(id,sender_id,body,read_at,created_at)`;
-export class MessagingServiceError extends Error {
-  constructor(status, code, message) {
-    super(message);
-    this.status = status;
-    this.code = code;
-  }
-}
+export class MessagingServiceError extends ApiError {}
 function mapped(error) {
   const code = error?.message?.match(
     /(PRODUCT|CONVERSATION|MESSAGE|ORDER)_[A-Z_]+/,

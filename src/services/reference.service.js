@@ -1,13 +1,7 @@
+import { ApiError } from "../errors/api-error.js";
 import { supabaseAdmin } from "../config/supabase.js";
 
-export class ReferenceServiceError extends Error {
-  constructor(status, code, message) {
-    super(message);
-    this.name = "ReferenceServiceError";
-    this.status = status;
-    this.code = code;
-  }
-}
+export class ReferenceServiceError extends ApiError {}
 
 function unavailable() {
   return new ReferenceServiceError(

@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.hoisted(() => {
-  process.env.SUPABASE_URL ||= "http://127.0.0.1:54321";
+  process.env.SUPABASE_URL ||= "http://127.0.0.1:55321";
   process.env.SUPABASE_PUBLISHABLE_KEY ||= "test-publishable-key";
 });
 
@@ -237,7 +237,7 @@ describe("password recovery errors", () => {
       resetPassword("recovery-token", "Password123!"),
     ).resolves.toBeUndefined();
     expect(fetch).toHaveBeenCalledWith(
-      "http://127.0.0.1:54321/auth/v1/user",
+      "http://127.0.0.1:55321/auth/v1/user",
       expect.objectContaining({
         method: "PUT",
         body: JSON.stringify({ password: "Password123!" }),
