@@ -71,10 +71,10 @@ its local services.
    ```dotenv
    PORT=4000
    CORS_ORIGIN=http://localhost:3000
-   SUPABASE_URL=http://127.0.0.1:54321
+   SUPABASE_URL=http://127.0.0.1:55321
    SUPABASE_PUBLISHABLE_KEY=<local publishable or anon key>
    SUPABASE_SECRET_KEY=<local secret or service_role key>
-   DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+   DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55322/postgres
    ```
 
 4. Start the API in a second terminal:
@@ -87,10 +87,10 @@ Local Supabase services include:
 
 | Service | URL |
 | --- | --- |
-| Data/Auth API | `http://127.0.0.1:54321` |
-| PostgreSQL | `postgresql://postgres:postgres@127.0.0.1:54322/postgres` |
-| Supabase Studio | `http://127.0.0.1:54323` |
-| Local email viewer | `http://127.0.0.1:54324` |
+| Data/Auth API | `http://127.0.0.1:55321` |
+| PostgreSQL | `postgresql://postgres:postgres@127.0.0.1:55322/postgres` |
+| Supabase Studio | `http://127.0.0.1:55323` |
+| Local email viewer | `http://127.0.0.1:55324` |
 
 Stop the local services when finished:
 

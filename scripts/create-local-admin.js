@@ -3,8 +3,8 @@ import "dotenv/config";
 import { randomBytes } from "node:crypto";
 
 const url = new URL(process.env.SUPABASE_URL || "http://invalid");
-if (!(["127.0.0.1", "localhost"].includes(url.hostname) && url.port === "54321")) {
-  throw new Error("Refusing to create an admin outside the local Supabase instance on port 54321.");
+if (!(["127.0.0.1", "localhost"].includes(url.hostname) && url.port === "55321")) {
+  throw new Error("Refusing to create an admin outside the local Supabase instance on port 55321.");
 }
 
 const { supabaseAdmin } = await import("../src/config/supabase.js");
