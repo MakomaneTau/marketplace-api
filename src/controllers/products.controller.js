@@ -74,6 +74,19 @@ export async function listSellerProducts(req, res) {
   }
 }
 
+export async function getSellerProduct(req, res) {
+  const errors = validateProductId(req.params.id);
+  if (errors.length) return sendValidationError(res, errors);
+  try {
+    return sendData(
+      res,
+      await productsService.getSellerProduct(req.params.id, req.user.id),
+    );
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
 export async function createSellerProduct(req, res) {
   const managedFields = ["shop_id", "image_urls"].filter((field) =>
     Object.prototype.hasOwnProperty.call(req.body || {}, field),

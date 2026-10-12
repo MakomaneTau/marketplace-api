@@ -290,6 +290,15 @@ paths:
         name: id
         required: true
         schema: { type: string, format: uuid }
+    get:
+      summary: Return a seller-owned listing, including drafts, for editing
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Owned product with category and shop data }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { description: Seller role or shop ownership required }
+        "404": { description: Product not found }
     patch:
       summary: Update an owned product without bypassing managed images
       security: [{ bearerAuth: [] }]

@@ -4,6 +4,7 @@ import {
   createSellerProduct,
   deleteProduct,
   listSellerProducts,
+  getSellerProduct,
   removeProductImage,
   updateSellerProduct,
 } from "../controllers/products.controller.js";
@@ -13,6 +14,7 @@ import { marketplaceImageUpload } from "../middleware/image-upload.js";
 const sellerProductsRouter = Router();
 sellerProductsRouter.use(authenticate);
 sellerProductsRouter.get("/", listSellerProducts);
+sellerProductsRouter.get("/:id", getSellerProduct);
 sellerProductsRouter.post("/", createSellerProduct);
 sellerProductsRouter.patch("/:id", updateSellerProduct);
 sellerProductsRouter.delete("/:id", deleteProduct);

@@ -21,6 +21,7 @@ vi.mock("../../src/services/products.service.js", () => {
     updateProduct: vi.fn(),
     deleteProduct: vi.fn(),
     listSellerProducts: vi.fn(),
+    getSellerProduct: vi.fn(),
     createSellerProduct: vi.fn(),
     addProductImage: vi.fn(),
     removeProductImage: vi.fn(),
@@ -93,6 +94,56 @@ describe("products API", () => {
       limit: 24,
     });
     expect(getUserFromAccessToken).not.toHaveBeenCalled();
+  });
+
+  it("loads an owned seller listing directly without a catalogue page limit", async () => {
+    authenticateSeller();
+    productsService.getSellerProduct.mockResolvedValue({
+      ...product,
+      status: "draft",
+    });
+    const response = await request(app)
+      .get(`/api/v1/seller/products/${PRODUCT_ID}`)
+      .set("Authorization", "Bearer seller-token");
+    expect(response.status).toBe(200);
+    expect(response.body.data.status).toBe("draft");
+    expect(productsService.getSellerProduct).toHaveBeenCalledWith(
+      PRODUCT_ID,
+      SELLER.id,
+    );
+    expect(productsService.listSellerProducts).not.toHaveBeenCalled();
+  });
+
+  it("requires authentication and a valid ID for seller listing lookup", async () => {
+    getUserFromAccessToken.mockResolvedValue({ user: null, error: null });
+    expect(
+      (await request(app).get(`/api/v1/seller/products/${PRODUCT_ID}`)).status,
+    ).toBe(401);
+    authenticateSeller();
+    expect(
+      (
+        await request(app)
+          .get("/api/v1/seller/products/invalid")
+          .set("Authorization", "Bearer seller-token")
+      ).status,
+    ).toBe(400);
+    expect(productsService.getSellerProduct).not.toHaveBeenCalled();
+  });
+
+  it("preserves ownership failures for seller listing lookup", async () => {
+    authenticateSeller();
+    productsService.getSellerProduct.mockRejectedValue(
+      new productsService.ProductServiceError(
+        403,
+        "SHOP_OWNERSHIP_REQUIRED",
+        "You can only manage products in your own shop.",
+      ),
+    );
+    const response = await request(app)
+      .get(`/api/v1/seller/products/${PRODUCT_ID}`)
+      .set("Authorization", "Bearer seller-token");
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe("SHOP_OWNERSHIP_REQUIRED");
   });
 
   it("lets public users list active products from one shop", async () => {

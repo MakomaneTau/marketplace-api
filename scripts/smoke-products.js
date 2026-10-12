@@ -6,6 +6,7 @@ import {
   createSellerProduct,
   deleteProduct,
   getProduct,
+  getSellerProduct,
   listProducts,
   listSellerProducts,
   updateProduct,
@@ -86,6 +87,12 @@ try {
     userId,
   );
   productId = draft.id;
+  const ownedDraft = await getSellerProduct(productId, userId);
+  assert(
+    ownedDraft.id === productId && ownedDraft.status === "draft",
+    "The seller must be able to load an owned draft directly.",
+  );
+
   const png = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 0]);
   const withImage = await addProductImage(productId, userId, {
     buffer: png,

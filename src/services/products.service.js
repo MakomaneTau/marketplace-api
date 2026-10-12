@@ -78,11 +78,15 @@ async function requireOwnedShop(shopId, userId) {
   }
 }
 
-async function getManagedProduct(productId, userId) {
+async function getManagedProduct(
+  productId,
+  userId,
+  select = "id, shop_id, image_urls, status",
+) {
   await requireSeller(userId);
   const { data, error } = await supabaseAdmin
     .from("products")
-    .select("id, shop_id, image_urls, status")
+    .select(select)
     .eq("id", productId)
     .maybeSingle();
 
@@ -95,6 +99,10 @@ async function getManagedProduct(productId, userId) {
     );
   await requireOwnedShop(data.shop_id, userId);
   return data;
+}
+
+export function getSellerProduct(productId, userId) {
+  return getManagedProduct(productId, userId, PRODUCT_SELECT);
 }
 
 function escapeLike(value) {
