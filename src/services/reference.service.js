@@ -13,7 +13,7 @@ function unavailable() {
   return new ReferenceServiceError(
     503,
     "REFERENCE_SERVICE_UNAVAILABLE",
-    "Reference data is temporarily unavailable."
+    "Reference data is temporarily unavailable.",
   );
 }
 
@@ -28,18 +28,25 @@ export async function listCategories({ q, featured } = {}) {
     .order("sort_order", { ascending: true })
     .order("name", { ascending: true });
 
-  if (q?.trim()) categoriesQuery = categoriesQuery.ilike("name", `%${escapeLike(q.trim())}%`);
-  if (featured !== undefined) categoriesQuery = categoriesQuery.eq("is_featured", featured);
+  if (q?.trim())
+    categoriesQuery = categoriesQuery.ilike(
+      "name",
+      `%${escapeLike(q.trim())}%`,
+    );
+  if (featured !== undefined)
+    categoriesQuery = categoriesQuery.eq("is_featured", featured);
 
-  const [{ data: categories, error: categoriesError }, { data: products, error: productsError }] =
-    await Promise.all([
-      categoriesQuery,
-      supabaseAdmin
-        .from("products")
-        .select("category_id, shop:shops!inner(is_open)")
-        .eq("status", "active")
-        .eq("shops.is_open", true),
-    ]);
+  const [
+    { data: categories, error: categoriesError },
+    { data: products, error: productsError },
+  ] = await Promise.all([
+    categoriesQuery,
+    supabaseAdmin
+      .from("products")
+      .select("category_id, shop:shops!inner(is_open)")
+      .eq("status", "active")
+      .eq("shops.is_open", true),
+  ]);
 
   if (categoriesError || productsError) throw unavailable();
 
@@ -59,7 +66,11 @@ export async function getCategory(slug) {
   const category = categories.find((item) => item.slug === slug);
 
   if (!category) {
-    throw new ReferenceServiceError(404, "CATEGORY_NOT_FOUND", "Category not found.");
+    throw new ReferenceServiceError(
+      404,
+      "CATEGORY_NOT_FOUND",
+      "Category not found.",
+    );
   }
 
   return category;
@@ -91,7 +102,11 @@ async function findUniversity(slug) {
 
   if (error) throw unavailable();
   if (!data) {
-    throw new ReferenceServiceError(404, "UNIVERSITY_NOT_FOUND", "University not found.");
+    throw new ReferenceServiceError(
+      404,
+      "UNIVERSITY_NOT_FOUND",
+      "University not found.",
+    );
   }
 
   return data;

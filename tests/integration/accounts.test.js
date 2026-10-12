@@ -103,24 +103,38 @@ describe("account API", () => {
     expect(authService.signup).not.toHaveBeenCalled();
   });
 
-  it.each([undefined, "university-of-the-witwatersrand"])("creates a seller without student fields (university: %s)", async (universitySlug) => {
-    authService.signup.mockResolvedValue(session);
-    const input = {
-      firstName: "Test", lastName: "Seller", email: "seller@example.com",
-      password: "SecurePassword123!", role: "seller", universitySlug,
-    };
-    const response = await request(app).post("/api/v1/auth/signup").send(input);
-    expect(response.status).toBe(201);
-    expect(authService.signup).toHaveBeenCalled();
-  });
+  it.each([undefined, "university-of-the-witwatersrand"])(
+    "creates a seller without student fields (university: %s)",
+    async (universitySlug) => {
+      authService.signup.mockResolvedValue(session);
+      const input = {
+        firstName: "Test",
+        lastName: "Seller",
+        email: "seller@example.com",
+        password: "SecurePassword123!",
+        role: "seller",
+        universitySlug,
+      };
+      const response = await request(app)
+        .post("/api/v1/auth/signup")
+        .send(input);
+      expect(response.status).toBe(201);
+      expect(authService.signup).toHaveBeenCalled();
+    },
+  );
 
   it("still requires a university for buyers", async () => {
     const response = await request(app).post("/api/v1/auth/signup").send({
-      firstName: "Test", lastName: "Buyer", email: "buyer@example.com",
-      password: "SecurePassword123!", role: "buyer",
+      firstName: "Test",
+      lastName: "Buyer",
+      email: "buyer@example.com",
+      password: "SecurePassword123!",
+      role: "buyer",
     });
     expect(response.status).toBe(400);
-    expect(response.body.error.details).toContainEqual(expect.objectContaining({ field: "universitySlug" }));
+    expect(response.body.error.details).toContainEqual(
+      expect.objectContaining({ field: "universitySlug" }),
+    );
     expect(authService.signup).not.toHaveBeenCalled();
   });
 
@@ -141,8 +155,8 @@ describe("account API", () => {
       new authService.AuthServiceError(
         401,
         "AUTH_CREDENTIALS_INVALID",
-        "Email or password is incorrect."
-      )
+        "Email or password is incorrect.",
+      ),
     );
 
     const response = await request(app).post("/api/v1/auth/login").send({
@@ -164,7 +178,9 @@ describe("account API", () => {
       .set("Authorization", "Bearer access-token");
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ data: { user, profile: { ...profile, isAdmin: false } } });
+    expect(response.body).toEqual({
+      data: { user, profile: { ...profile, isAdmin: false } },
+    });
   });
 
   it("updates allowed profile fields", async () => {
@@ -213,8 +229,8 @@ describe("account API", () => {
       new authService.AuthServiceError(
         429,
         "AUTH_RATE_LIMITED",
-        "Too many requests. Please wait a moment and try again."
-      )
+        "Too many requests. Please wait a moment and try again.",
+      ),
     );
 
     const response = await request(app)
@@ -240,7 +256,7 @@ describe("account API", () => {
     expect(response.status).toBe(204);
     expect(authService.resetPassword).toHaveBeenCalledWith(
       "recovery-token",
-      "NewPassword123!"
+      "NewPassword123!",
     );
   });
 
@@ -250,8 +266,8 @@ describe("account API", () => {
       new authService.AuthServiceError(
         422,
         "AUTH_PASSWORD_UNCHANGED",
-        "Your new password must be different from your current password."
-      )
+        "Your new password must be different from your current password.",
+      ),
     );
 
     const response = await request(app)
@@ -262,7 +278,8 @@ describe("account API", () => {
     expect(response.status).toBe(422);
     expect(response.body.error).toMatchObject({
       code: "AUTH_PASSWORD_UNCHANGED",
-      message: "Your new password must be different from your current password.",
+      message:
+        "Your new password must be different from your current password.",
     });
   });
 });

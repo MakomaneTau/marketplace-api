@@ -15,13 +15,24 @@ export function parseBearerToken(authorizationHeader) {
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function requiredString(value, field, errors, { min = 1, max = 255 } = {}) {
-  if (typeof value !== "string" || value.trim().length < min || value.trim().length > max) {
-    errors.push({ field, message: `must contain between ${min} and ${max} characters` });
+  if (
+    typeof value !== "string" ||
+    value.trim().length < min ||
+    value.trim().length > max
+  ) {
+    errors.push({
+      field,
+      message: `must contain between ${min} and ${max} characters`,
+    });
   }
 }
 
 function validateEmail(value, errors) {
-  if (typeof value !== "string" || value.length > 320 || !EMAIL_PATTERN.test(value)) {
+  if (
+    typeof value !== "string" ||
+    value.length > 320 ||
+    !EMAIL_PATTERN.test(value)
+  ) {
     errors.push({ field: "email", message: "must be a valid email address" });
   }
 }
@@ -50,7 +61,7 @@ export function validateSignup(input) {
       "universitySlug",
       "studentNumber",
     ]),
-    errors
+    errors,
   );
   requiredString(input.firstName, "firstName", errors, { max: 100 });
   requiredString(input.lastName, "lastName", errors, { max: 100 });
@@ -68,7 +79,9 @@ export function validateSignup(input) {
   }
 
   if (input.role === "buyer" || input.universitySlug != null) {
-    requiredString(input.universitySlug, "universitySlug", errors, { max: 150 });
+    requiredString(input.universitySlug, "universitySlug", errors, {
+      max: 150,
+    });
   }
 
   return errors;

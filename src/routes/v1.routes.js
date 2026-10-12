@@ -8,7 +8,10 @@ import { publicShopsRouter, sellerShopRouter } from "./shops.routes.js";
 import sellerProductsRouter from "./seller-products.routes.js";
 import favouritesRouter from "./favourites.routes.js";
 import { ordersRouter, sellerOrdersRouter } from "./orders.routes.js";
-import { conversationsRouter, notificationsRouter } from "./messaging.routes.js";
+import {
+  conversationsRouter,
+  notificationsRouter,
+} from "./messaging.routes.js";
 import { reviewsRouter } from "./reviews.routes.js";
 import insightsRouter from "./insights.routes.js";
 import settingsRouter from "./settings.routes.js";

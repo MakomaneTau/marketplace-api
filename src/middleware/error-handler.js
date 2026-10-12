@@ -12,7 +12,10 @@ export function errorHandler(error, req, res, next) {
     });
   }
 
-  if (error?.name === "MulterError" || error?.code === "UNSUPPORTED_IMAGE_TYPE") {
+  if (
+    error?.name === "MulterError" ||
+    error?.code === "UNSUPPORTED_IMAGE_TYPE"
+  ) {
     const fileTooLarge = error.code === "LIMIT_FILE_SIZE";
     return sendError(res, {
       status: 400,
@@ -39,7 +42,7 @@ export function errorHandler(error, req, res, next) {
         event: "unhandled_error",
         request_id: res.locals.requestId,
         message: error?.message || "Unknown error",
-      })
+      }),
     );
   }
 

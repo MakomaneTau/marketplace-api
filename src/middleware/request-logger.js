@@ -14,7 +14,7 @@ export function requestLogger(req, res, next) {
         path: req.originalUrl,
         status: res.statusCode,
         duration_ms: Number(durationMs.toFixed(2)),
-      })
+      }),
     );
   });
 

@@ -19,7 +19,11 @@ export class FavouriteServiceError extends Error {
 }
 
 function unavailable() {
-  return new FavouriteServiceError(503, "FAVOURITE_SERVICE_UNAVAILABLE", "Saved products are temporarily unavailable.");
+  return new FavouriteServiceError(
+    503,
+    "FAVOURITE_SERVICE_UNAVAILABLE",
+    "Saved products are temporarily unavailable.",
+  );
 }
 
 export async function listFavourites(userId, { page = 1, limit = 24 } = {}) {
@@ -34,7 +38,10 @@ export async function listFavourites(userId, { page = 1, limit = 24 } = {}) {
 
   if (error) throw unavailable();
   return {
-    products: data.map(({ product, created_at }) => ({ ...product, favourited_at: created_at })),
+    products: data.map(({ product, created_at }) => ({
+      ...product,
+      favourited_at: created_at,
+    })),
     page,
     limit,
     total: count || 0,
@@ -51,11 +58,19 @@ export async function saveFavourite(userId, productId) {
     .eq("shops.is_open", true)
     .maybeSingle();
   if (productError) throw unavailable();
-  if (!product) throw new FavouriteServiceError(404, "PRODUCT_NOT_FOUND", "Product not found.");
+  if (!product)
+    throw new FavouriteServiceError(
+      404,
+      "PRODUCT_NOT_FOUND",
+      "Product not found.",
+    );
 
   const { error } = await supabaseAdmin
     .from("favourites")
-    .upsert({ user_id: userId, product_id: productId }, { onConflict: "user_id,product_id", ignoreDuplicates: true });
+    .upsert(
+      { user_id: userId, product_id: productId },
+      { onConflict: "user_id,product_id", ignoreDuplicates: true },
+    );
   if (error) throw unavailable();
   return { productId, saved: true };
 }

@@ -3,7 +3,10 @@ import * as onboardingService from "../services/onboarding.service.js";
 
 function handleError(res, error) {
   return sendError(res, {
-    status: error instanceof onboardingService.OnboardingServiceError ? error.status : 500,
+    status:
+      error instanceof onboardingService.OnboardingServiceError
+        ? error.status
+        : 500,
     code: error.code || "INTERNAL_SERVER_ERROR",
     message: error.message || "Unexpected error.",
   });
@@ -22,11 +25,18 @@ export async function updateOnboarding(req, res) {
   const allowedFields = new Set(["welcomeSeen", "dismissed"]);
   const errors = [];
 
-  if (!Object.keys(input).length) errors.push({ field: "body", message: "must contain an onboarding preference" });
+  if (!Object.keys(input).length)
+    errors.push({
+      field: "body",
+      message: "must contain an onboarding preference",
+    });
   for (const [field, value] of Object.entries(input)) {
-    if (!allowedFields.has(field)) errors.push({ field, message: "is not allowed" });
-    else if (typeof value !== "boolean") errors.push({ field, message: "must be boolean" });
-    else if (field === "welcomeSeen" && value === false) errors.push({ field, message: "cannot be reset" });
+    if (!allowedFields.has(field))
+      errors.push({ field, message: "is not allowed" });
+    else if (typeof value !== "boolean")
+      errors.push({ field, message: "must be boolean" });
+    else if (field === "welcomeSeen" && value === false)
+      errors.push({ field, message: "cannot be reset" });
   }
 
   if (errors.length) {
@@ -39,7 +49,10 @@ export async function updateOnboarding(req, res) {
   }
 
   try {
-    return sendData(res, await onboardingService.updateOnboarding(req.user.id, input));
+    return sendData(
+      res,
+      await onboardingService.updateOnboarding(req.user.id, input),
+    );
   } catch (error) {
     return handleError(res, error);
   }

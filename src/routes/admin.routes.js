@@ -13,8 +13,14 @@ adminRouter.use(async (req, res, next) => {
   } catch (error) {
     return sendError(res, {
       status: error instanceof AdminServiceError ? error.status : 500,
-      code: error instanceof AdminServiceError ? error.code : "INTERNAL_SERVER_ERROR",
-      message: error instanceof AdminServiceError ? error.message : "An unexpected error occurred.",
+      code:
+        error instanceof AdminServiceError
+          ? error.code
+          : "INTERNAL_SERVER_ERROR",
+      message:
+        error instanceof AdminServiceError
+          ? error.message
+          : "An unexpected error occurred.",
     });
   }
 });

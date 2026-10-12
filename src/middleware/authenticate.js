@@ -8,14 +8,14 @@ function sendUnauthorized(res, code, message) {
 
 export async function authenticate(req, res, next) {
   const { token, error: headerError } = parseBearerToken(
-    req.get("authorization")
+    req.get("authorization"),
   );
 
   if (headerError === "missing") {
     return sendUnauthorized(
       res,
       "AUTH_TOKEN_MISSING",
-      "A bearer access token is required."
+      "A bearer access token is required.",
     );
   }
 
@@ -23,7 +23,7 @@ export async function authenticate(req, res, next) {
     return sendUnauthorized(
       res,
       "AUTH_TOKEN_MALFORMED",
-      "The Authorization header must use the Bearer scheme."
+      "The Authorization header must use the Bearer scheme.",
     );
   }
 
@@ -31,13 +31,17 @@ export async function authenticate(req, res, next) {
     const { user, error } = await getUserFromAccessToken(token);
 
     if (error?.code === "ACCOUNT_SUSPENDED") {
-      return sendError(res, { status: 403, code: error.code, message: error.message });
+      return sendError(res, {
+        status: 403,
+        code: error.code,
+        message: error.message,
+      });
     }
     if (error || !user) {
       return sendUnauthorized(
         res,
         "AUTH_TOKEN_INVALID",
-        "The access token is invalid or expired."
+        "The access token is invalid or expired.",
       );
     }
 

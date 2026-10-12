@@ -10,7 +10,13 @@ function javascriptFiles(directory) {
   });
 }
 
-const files = [...javascriptFiles("src"), ...javascriptFiles("scripts")];
+const files = [
+  ...javascriptFiles("src"),
+  ...javascriptFiles("scripts"),
+  ...javascriptFiles("tests"),
+  "eslint.config.js",
+  "vitest.config.js",
+];
 
 for (const file of files) {
   const result = spawnSync(process.execPath, ["--check", file], {

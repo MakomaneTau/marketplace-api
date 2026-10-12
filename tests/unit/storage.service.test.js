@@ -24,7 +24,7 @@ describe("image content validation", () => {
       validateImage({
         mimetype: "image/png",
         buffer: Buffer.from("not an image"),
-      })
+      }),
     ).toThrowError(StorageServiceError);
   });
 });

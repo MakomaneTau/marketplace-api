@@ -13,14 +13,10 @@ if (!supabasePublishableKey) {
 
 // This client operates with the public project key. It validates caller access
 // tokens without granting the service-role privileges held by supabaseAdmin.
-export const supabaseAuth = createClient(
-  supabaseUrl,
-  supabasePublishableKey,
-  {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-    },
-  }
-);
+export const supabaseAuth = createClient(supabaseUrl, supabasePublishableKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false,
+  },
+});

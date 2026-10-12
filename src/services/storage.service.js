@@ -5,13 +5,18 @@ const fileTypes = {
   "image/jpeg": {
     extension: "jpg",
     matches: (buffer) =>
-      buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff,
+      buffer.length >= 3 &&
+      buffer[0] === 0xff &&
+      buffer[1] === 0xd8 &&
+      buffer[2] === 0xff,
   },
   "image/png": {
     extension: "png",
     matches: (buffer) =>
       buffer.length >= 8 &&
-      buffer.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])),
+      buffer
+        .subarray(0, 8)
+        .equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])),
   },
   "image/webp": {
     extension: "webp",
@@ -37,26 +42,34 @@ export function validateImage(file) {
     throw new StorageServiceError(
       400,
       "IMAGE_CONTENT_INVALID",
-      "The uploaded file content does not match a supported image type."
+      "The uploaded file content does not match a supported image type.",
     );
   }
   return type.extension;
 }
 
-export async function uploadPrivateImage({ bucket, ownerId, scopeId, label, file }) {
+export async function uploadPrivateImage({
+  bucket,
+  ownerId,
+  scopeId,
+  label,
+  file,
+}) {
   const extension = validateImage(file);
   const path = `${ownerId}/${scopeId}/${label}-${randomUUID()}.${extension}`;
-  const { error } = await supabaseAdmin.storage.from(bucket).upload(path, file.buffer, {
-    contentType: file.mimetype,
-    cacheControl: "3600",
-    upsert: false,
-  });
+  const { error } = await supabaseAdmin.storage
+    .from(bucket)
+    .upload(path, file.buffer, {
+      contentType: file.mimetype,
+      cacheControl: "3600",
+      upsert: false,
+    });
 
   if (error) {
     throw new StorageServiceError(
       503,
       "STORAGE_SERVICE_UNAVAILABLE",
-      "File storage is temporarily unavailable."
+      "File storage is temporarily unavailable.",
     );
   }
   return path;
@@ -72,13 +85,25 @@ export async function removePrivateImages(bucket, paths) {
         event: "storage_cleanup_failed",
         bucket,
         object_count: paths.length,
-      })
+      }),
     );
   }
 }
 
-export async function uploadPublicImage({ bucket, ownerId, scopeId, label, file }) {
-  const path = await uploadPrivateImage({ bucket, ownerId, scopeId, label, file });
+export async function uploadPublicImage({
+  bucket,
+  ownerId,
+  scopeId,
+  label,
+  file,
+}) {
+  const path = await uploadPrivateImage({
+    bucket,
+    ownerId,
+    scopeId,
+    label,
+    file,
+  });
   const { data } = supabaseAdmin.storage.from(bucket).getPublicUrl(path);
   return { path, publicUrl: data.publicUrl };
 }

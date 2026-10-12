@@ -104,7 +104,8 @@ paths:
                 sellerId: { type: string, format: binary }
       responses:
         "201": { description: Verification submitted }
-        "400": { description: Missing, unsupported, oversized, or invalid image }
+        "400":
+          { description: Missing, unsupported, oversized, or invalid image }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { description: Seller account required }
         "409": { description: Verification is already pending }
@@ -163,12 +164,36 @@ paths:
       summary: List publicly visible products
       parameters:
         - { in: query, name: q, schema: { type: string, maxLength: 100 } }
-        - { in: query, name: slug, schema: { type: string, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9a-f]{8}$" } }
+        - {
+            in: query,
+            name: slug,
+            schema:
+              {
+                type: string,
+                pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9a-f]{8}$",
+              },
+          }
         - { in: query, name: category, schema: { type: string } }
-        - { in: query, name: condition, schema: { type: string, enum: [new, like_new, good, fair] } }
-        - { in: query, name: sort, schema: { type: string, enum: [newest, price_asc, price_desc, most_viewed] } }
+        - {
+            in: query,
+            name: condition,
+            schema: { type: string, enum: [new, like_new, good, fair] },
+          }
+        - {
+            in: query,
+            name: sort,
+            schema:
+              {
+                type: string,
+                enum: [newest, price_asc, price_desc, most_viewed],
+              },
+          }
         - { in: query, name: page, schema: { type: integer, minimum: 1 } }
-        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100 } }
+        - {
+            in: query,
+            name: limit,
+            schema: { type: integer, minimum: 1, maximum: 100 },
+          }
       responses:
         "200":
           description: Paginated product collection with page metadata
@@ -220,13 +245,33 @@ paths:
       summary: List the authenticated seller's complete inventory
       security: [{ bearerAuth: [] }]
       parameters:
-        - { in: query, name: status, schema: { type: string, enum: [draft, active, sold, paused] } }
+        - {
+            in: query,
+            name: status,
+            schema: { type: string, enum: [draft, active, sold, paused] },
+          }
         - { in: query, name: q, schema: { type: string, maxLength: 100 } }
         - { in: query, name: category, schema: { type: string } }
-        - { in: query, name: condition, schema: { type: string, enum: [new, like_new, good, fair] } }
-        - { in: query, name: sort, schema: { type: string, enum: [newest, price_asc, price_desc, most_viewed] } }
+        - {
+            in: query,
+            name: condition,
+            schema: { type: string, enum: [new, like_new, good, fair] },
+          }
+        - {
+            in: query,
+            name: sort,
+            schema:
+              {
+                type: string,
+                enum: [newest, price_asc, price_desc, most_viewed],
+              },
+          }
         - { in: query, name: page, schema: { type: integer, minimum: 1 } }
-        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100 } }
+        - {
+            in: query,
+            name: limit,
+            schema: { type: integer, minimum: 1, maximum: 100 },
+          }
       responses:
         "200": { description: Paginated seller inventory }
         "401": { $ref: "#/components/responses/Unauthorized" }
@@ -305,7 +350,11 @@ paths:
       security: [{ bearerAuth: [] }]
       parameters:
         - { in: query, name: page, schema: { type: integer, minimum: 1 } }
-        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100 } }
+        - {
+            in: query,
+            name: limit,
+            schema: { type: integer, minimum: 1, maximum: 100 },
+          }
       responses:
         "200": { description: Paginated saved-product collection }
         "401": { $ref: "#/components/responses/Unauthorized" }
@@ -346,7 +395,12 @@ paths:
       summary: Return an order to its buyer or seller
       security: [{ bearerAuth: [] }]
       parameters:
-        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+        - {
+            in: path,
+            name: id,
+            required: true,
+            schema: { type: string, format: uuid },
+          }
       responses:
         "200": { description: Order found }
         "403": { description: Order participant required }
@@ -356,7 +410,12 @@ paths:
       summary: Cancel a new buyer order or apply an allowed seller transition
       security: [{ bearerAuth: [] }]
       parameters:
-        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+        - {
+            in: path,
+            name: id,
+            required: true,
+            schema: { type: string, format: uuid },
+          }
       responses:
         "200": { description: Order transitioned }
         "403": { description: Seller transition required }
@@ -373,7 +432,12 @@ paths:
       summary: Return an order for the authenticated seller's shop
       security: [{ bearerAuth: [] }]
       parameters:
-        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+        - {
+            in: path,
+            name: id,
+            required: true,
+            schema: { type: string, format: uuid },
+          }
       responses:
         "200": { description: Seller order found }
         "403": { description: Order participant required }
@@ -382,7 +446,12 @@ paths:
       summary: Advance or cancel a seller order
       security: [{ bearerAuth: [] }]
       parameters:
-        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+        - {
+            in: path,
+            name: id,
+            required: true,
+            schema: { type: string, format: uuid },
+          }
       responses:
         "200": { description: Order transitioned }
         "409": { description: Invalid transition }
@@ -394,17 +463,29 @@ paths:
     post:
       summary: Idempotently start a public-product conversation
       security: [{ bearerAuth: [] }]
-      responses: { "201": { description: Conversation ready }, "404": { description: Product not found } }
+      responses:
+        {
+          "201": { description: Conversation ready },
+          "404": { description: Product not found },
+        }
   /api/v1/conversations/{id}:
     get:
       summary: Return a participant-scoped conversation and messages
       security: [{ bearerAuth: [] }]
-      responses: { "200": { description: Conversation found }, "403": { description: Participant required } }
+      responses:
+        {
+          "200": { description: Conversation found },
+          "403": { description: Participant required },
+        }
   /api/v1/conversations/{id}/messages:
     post:
       summary: Send a message and atomically notify its recipient
       security: [{ bearerAuth: [] }]
-      responses: { "201": { description: Message sent }, "403": { description: Participant required } }
+      responses:
+        {
+          "201": { description: Message sent },
+          "403": { description: Participant required },
+        }
   /api/v1/conversations/{id}/read:
     patch:
       summary: Mark incoming messages read
@@ -429,7 +510,12 @@ paths:
     post:
       summary: Review a product from a completed buyer order
       security: [{ bearerAuth: [] }]
-      responses: { "201": { description: Review created and reputation refreshed }, "403": { description: Completed buyer order required }, "409": { description: Review already exists } }
+      responses:
+        {
+          "201": { description: Review created and reputation refreshed },
+          "403": { description: Completed buyer order required },
+          "409": { description: Review already exists },
+        }
   /api/v1/products/{id}/reviews:
     get:
       summary: List public product reviews
@@ -442,14 +528,26 @@ paths:
     get:
       summary: Return seller dashboard counters and recent orders
       security: [{ bearerAuth: [] }]
-      responses: { "200": { description: Seller dashboard }, "403": { description: Seller shop required } }
+      responses:
+        {
+          "200": { description: Seller dashboard },
+          "403": { description: Seller shop required },
+        }
   /api/v1/seller/analytics:
     get:
       summary: Return revenue, order, view, and top-product analytics
       security: [{ bearerAuth: [] }]
       parameters:
-        - { in: query, name: days, schema: { type: integer, enum: [7, 30, 90, 365] } }
-      responses: { "200": { description: Seller analytics }, "403": { description: Seller shop required } }
+        - {
+            in: query,
+            name: days,
+            schema: { type: integer, enum: [7, 30, 90, 365] },
+          }
+      responses:
+        {
+          "200": { description: Seller analytics },
+          "403": { description: Seller shop required },
+        }
   /api/v1/settings:
     get:
       summary: Return authenticated notification preferences
@@ -458,7 +556,11 @@ paths:
     patch:
       summary: Update the supported boolean notification preferences
       security: [{ bearerAuth: [] }]
-      responses: { "200": { description: Updated preferences }, "400": { $ref: "#/components/responses/ValidationError" } }
+      responses:
+        {
+          "200": { description: Updated preferences },
+          "400": { $ref: "#/components/responses/ValidationError" },
+        }
   /api/v1/categories:
     get:
       summary: List product categories with active product counts

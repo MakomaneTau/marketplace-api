@@ -7,6 +7,7 @@ export function securityHeaders(req, res, next) {
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
     "X-Permitted-Cross-Domain-Policies": "none",
   });
-  if (process.env.NODE_ENV === "production") res.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  if (process.env.NODE_ENV === "production")
+    res.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   next();
 }

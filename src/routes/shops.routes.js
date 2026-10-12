@@ -20,4 +20,8 @@ sellerShopRouter.post("/", createShop);
 sellerShopRouter.patch("/", updateShop);
 sellerShopRouter.put("/pickup-areas", replacePickupAreas);
 sellerShopRouter.post("/logo", marketplaceImageUpload, uploadShopImage("logo"));
-sellerShopRouter.post("/banner", marketplaceImageUpload, uploadShopImage("banner"));
+sellerShopRouter.post(
+  "/banner",
+  marketplaceImageUpload,
+  uploadShopImage("banner"),
+);

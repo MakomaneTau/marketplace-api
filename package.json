@@ -1,14 +1,14 @@
 {
   "name": "marketplace-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "Marketplace Express API backed by Supabase Auth, PostgreSQL, and Storage",
   "main": "src/server.js",
   "type": "module",
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "dev": "nodemon --watch src src/server.js",
+    "dev": "node --watch src/server.js",
     "typecheck": "node scripts/check-syntax.js",
     "build": "npm run typecheck",
     "smoke:local": "node scripts/smoke-local.js",
@@ -24,7 +24,13 @@
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",
     "supabase:reset": "supabase db reset",
-    "supabase:lint": "supabase db lint --local --level warning"
+    "supabase:lint": "supabase db lint --local --level warning",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test",
+    "audit:production": "npm audit --omit=dev"
   },
   "repository": {
     "type": "git",
@@ -42,12 +48,18 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "multer": "^2.2.0"
+    "multer": "2.4.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14",
+    "@eslint/js": "10.0.1",
+    "@vitest/coverage-v8": "4.1.11",
+    "eslint": "10.12.0",
+    "prettier": "3.9.10",
     "supabase": "^2.109.1",
     "supertest": "^7.2.2",
-    "vitest": "^4.1.10"
+    "vitest": "4.1.11"
+  },
+  "engines": {
+    "node": ">=22.13.0"
   }
 }

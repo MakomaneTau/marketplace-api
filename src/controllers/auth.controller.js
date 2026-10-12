@@ -43,7 +43,10 @@ function handleError(res, error) {
 export async function getCurrentUser(req, res) {
   try {
     const profile = await profileService.getProfile(req.user.id);
-    return sendData(res, { user: req.user, profile: { ...profile, isAdmin: await isAdmin(req.user.id) } });
+    return sendData(res, {
+      user: req.user,
+      profile: { ...profile, isAdmin: await isAdmin(req.user.id) },
+    });
   } catch (error) {
     return handleError(res, error);
   }
@@ -96,8 +99,11 @@ export async function forgotPassword(req, res) {
     await authService.requestPasswordReset(req.body.email);
     return sendData(
       res,
-      { message: "If an account exists, password reset instructions have been sent." },
-      { status: 202 }
+      {
+        message:
+          "If an account exists, password reset instructions have been sent.",
+      },
+      { status: 202 },
     );
   } catch (error) {
     return handleError(res, error);

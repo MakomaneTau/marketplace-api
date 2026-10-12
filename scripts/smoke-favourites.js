@@ -22,21 +22,31 @@ try {
   for (let i = 0; i < 2; i += 1) {
     const email = `favourites-smoke-${randomUUID()}@example.test`;
     const password = `Smoke-${randomUUID()}!`;
-    const { data, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email, password, email_confirm: true,
-      user_metadata: { firstName: "Favourites", lastName: "Smoke", role: "buyer", isStudent: true },
-    });
+    const { data, error: createError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          firstName: "Favourites",
+          lastName: "Smoke",
+          role: "buyer",
+          isStudent: true,
+        },
+      });
     if (createError) throw createError;
     users.push({ id: data.user.id });
-    const response = await request(app).post("/api/v1/auth/login").send({ email, password });
+    const response = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email, password });
     assert.equal(response.status, 200, JSON.stringify(response.body));
     users[i].token = response.body.data.session.accessToken;
     assert.ok(users[i].token, "Login must return an access token.");
   }
 
   const endpoint = "/api/v1/favourites";
-  const call = (method, path, user = users[0]) => request(app)[method](path)
-    .set("Authorization", `Bearer ${user.token}`);
+  const call = (method, path, user = users[0]) =>
+    request(app)[method](path).set("Authorization", `Bearer ${user.token}`);
   assert.equal((await request(app).get(endpoint)).status, 401);
   for (let i = 0; i < 2; i += 1) {
     const saved = await call("put", `${endpoint}/${productId}`);
@@ -44,7 +54,10 @@ try {
   }
   const savedList = await call("get", endpoint);
   assert.equal(savedList.status, 200, JSON.stringify(savedList.body));
-  assert.deepEqual(savedList.body.data.map((product) => product.id), [productId]);
+  assert.deepEqual(
+    savedList.body.data.map((product) => product.id),
+    [productId],
+  );
   const otherList = await call("get", endpoint, users[1]);
   assert.equal(otherList.status, 200, JSON.stringify(otherList.body));
   assert.deepEqual(otherList.body.data, []);
@@ -53,7 +66,9 @@ try {
   const emptyList = await call("get", endpoint);
   assert.equal(emptyList.status, 200, JSON.stringify(emptyList.body));
   assert.deepEqual(emptyList.body.data, []);
-  console.log("Favourites smoke passed: authentication, save, duplicate save, list, user isolation, remove.");
+  console.log(
+    "Favourites smoke passed: authentication, save, duplicate save, list, user isolation, remove.",
+  );
 } finally {
   for (const user of users) {
     const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id);

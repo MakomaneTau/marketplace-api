@@ -6,7 +6,7 @@ const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
 
 if (!supabaseUrl || !publishableKey) {
   throw new Error(
-    "SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY are required in .env."
+    "SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY are required in .env.",
   );
 }
 
@@ -25,7 +25,7 @@ async function request(url, options = {}, expectedStatus = 200) {
 
   if (response.status !== expectedStatus) {
     throw new Error(
-      `${options.method || "GET"} ${url} returned ${response.status}: ${JSON.stringify(body)}`
+      `${options.method || "GET"} ${url} returned ${response.status}: ${JSON.stringify(body)}`,
     );
   }
 
@@ -42,7 +42,7 @@ async function signIn(email) {
         "content-type": "application/json",
       },
       body: JSON.stringify({ email, password: "TestPassword123!" }),
-    }
+    },
   );
 
   if (!session?.access_token) {
@@ -64,11 +64,14 @@ let sellerToken = null;
 
 try {
   const health = await request(`${apiUrl}/api/health`);
-  if (health?.status !== "ok") throw new Error("The API health response is invalid.");
+  if (health?.status !== "ok")
+    throw new Error("The API health response is invalid.");
 
   const publicProducts = await request(`${apiUrl}/api/v1/products`);
   if (!Array.isArray(publicProducts?.data)) {
-    throw new Error("The public products response does not contain a data array.");
+    throw new Error(
+      "The public products response does not contain a data array.",
+    );
   }
 
   sellerToken = await signIn("seller@example.com");
@@ -78,15 +81,18 @@ try {
     headers: bearer(sellerToken),
   });
   if (me?.data?.user?.email !== "seller@example.com") {
-    throw new Error("The authenticated user response does not match the seller.");
+    throw new Error(
+      "The authenticated user response does not match the seller.",
+    );
   }
 
   const categories = await request(
     `${supabaseUrl}/rest/v1/categories?slug=eq.textbooks&select=id`,
-    { headers: { apikey: publishableKey } }
+    { headers: { apikey: publishableKey } },
   );
   const categoryId = categories?.[0]?.id;
-  if (!categoryId) throw new Error("The seeded textbooks category was not found.");
+  if (!categoryId)
+    throw new Error("The seeded textbooks category was not found.");
 
   const productInput = {
     shop_id: "20000000-0000-4000-8000-000000000001",
@@ -111,7 +117,7 @@ try {
       headers: bearer(buyerToken),
       body: JSON.stringify(productInput),
     },
-    403
+    403,
   );
 
   const created = await request(
@@ -121,10 +127,11 @@ try {
       headers: bearer(sellerToken),
       body: JSON.stringify(productInput),
     },
-    201
+    201,
   );
   createdProductId = created?.data?.id;
-  if (!createdProductId) throw new Error("Product creation returned no product ID.");
+  if (!createdProductId)
+    throw new Error("Product creation returned no product ID.");
 
   await request(`${apiUrl}/api/v1/products/${createdProductId}`, {
     method: "PATCH",
@@ -135,7 +142,7 @@ try {
   await request(
     `${apiUrl}/api/v1/products/${createdProductId}`,
     { method: "DELETE", headers: bearer(sellerToken) },
-    204
+    204,
   );
   createdProductId = null;
 

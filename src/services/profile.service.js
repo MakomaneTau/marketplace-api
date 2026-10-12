@@ -19,7 +19,7 @@ function unavailable() {
   return new ProfileServiceError(
     503,
     "PROFILE_SERVICE_UNAVAILABLE",
-    "Profile information is temporarily unavailable."
+    "Profile information is temporarily unavailable.",
   );
 }
 
@@ -52,7 +52,7 @@ function logProfile(level, event, payload = {}) {
       event,
       service: "profile",
       ...payload,
-    })
+    }),
   );
 }
 
@@ -74,7 +74,12 @@ export async function getProfile(userId) {
     .maybeSingle();
 
   if (error) throw unavailable();
-  if (!data) throw new ProfileServiceError(404, "PROFILE_NOT_FOUND", "Profile not found.");
+  if (!data)
+    throw new ProfileServiceError(
+      404,
+      "PROFILE_NOT_FOUND",
+      "Profile not found.",
+    );
   return toProfileDto(data);
 }
 
@@ -91,7 +96,7 @@ export async function resolveUniversityId(slug) {
     throw new ProfileServiceError(
       400,
       "UNIVERSITY_REFERENCE_INVALID",
-      "The selected university does not exist."
+      "The selected university does not exist.",
     );
   }
   return data.id;
@@ -99,7 +104,10 @@ export async function resolveUniversityId(slug) {
 
 async function validateCampus(campusId, universityId) {
   if (campusId === null) return null;
-  let query = supabaseAdmin.from("campuses").select("id, university_id").eq("id", campusId);
+  let query = supabaseAdmin
+    .from("campuses")
+    .select("id, university_id")
+    .eq("id", campusId);
   if (universityId) query = query.eq("university_id", universityId);
   const { data, error } = await query.maybeSingle();
 
@@ -108,7 +116,7 @@ async function validateCampus(campusId, universityId) {
     throw new ProfileServiceError(
       400,
       "CAMPUS_REFERENCE_INVALID",
-      "The selected campus does not belong to the selected university."
+      "The selected campus does not belong to the selected university.",
     );
   }
   return data.university_id;
@@ -134,10 +142,14 @@ export async function updateProfile(userId, input) {
   if ("universitySlug" in input) {
     universityId = await resolveUniversityId(input.universitySlug);
     update.university_id = universityId;
-    if (input.universitySlug === null && !("campusId" in input)) update.campus_id = null;
+    if (input.universitySlug === null && !("campusId" in input))
+      update.campus_id = null;
   }
   if ("campusId" in input) {
-    const campusUniversityId = await validateCampus(input.campusId, universityId);
+    const campusUniversityId = await validateCampus(
+      input.campusId,
+      universityId,
+    );
     update.campus_id = input.campusId;
     if (universityId === undefined && campusUniversityId) {
       update.university_id = campusUniversityId;
@@ -151,12 +163,17 @@ export async function updateProfile(userId, input) {
       .eq("id", userId)
       .maybeSingle();
     if (currentError) throw unavailable();
-    if (!current) throw new ProfileServiceError(404, "PROFILE_NOT_FOUND", "Profile not found.");
+    if (!current)
+      throw new ProfileServiceError(
+        404,
+        "PROFILE_NOT_FOUND",
+        "Profile not found.",
+      );
     if (current.role === "buyer") {
       throw new ProfileServiceError(
         400,
         "BUYER_STUDENT_REQUIRED",
-        "Buyer accounts must remain student accounts."
+        "Buyer accounts must remain student accounts.",
       );
     }
     update.university_id = null;
@@ -187,7 +204,7 @@ export async function updateProfile(userId, input) {
     throw new ProfileServiceError(
       404,
       "PROFILE_NOT_FOUND",
-      "Profile not found."
+      "Profile not found.",
     );
   }
 }

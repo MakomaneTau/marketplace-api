@@ -25,7 +25,9 @@ describe("onboarding service", () => {
 
   it("derives buyer progress from marketplace activity", async () => {
     const responses = {
-      profiles: [query({ data: { role: "buyer", campus_id: "campus-1" }, error: null })],
+      profiles: [
+        query({ data: { role: "buyer", campus_id: "campus-1" }, error: null }),
+      ],
       user_onboarding: [query({ data: null, error: null })],
       favourites: [query({ data: null, count: 1, error: null })],
       conversations: [query({ data: null, count: 0, error: null })],
@@ -46,8 +48,19 @@ describe("onboarding service", () => {
 
   it("derives seller progress from shop readiness", async () => {
     const responses = {
-      profiles: [query({ data: { role: "seller", campus_id: null }, error: null })],
-      user_onboarding: [query({ data: { version: 1, welcome_seen_at: "2026-09-24T10:00:00.000Z", dismissed_at: null }, error: null })],
+      profiles: [
+        query({ data: { role: "seller", campus_id: null }, error: null }),
+      ],
+      user_onboarding: [
+        query({
+          data: {
+            version: 1,
+            welcome_seen_at: "2026-09-24T10:00:00.000Z",
+            dismissed_at: null,
+          },
+          error: null,
+        }),
+      ],
       shops: [query({ data: { id: "shop-1", is_open: true }, error: null })],
       shop_pickup_areas: [query({ data: null, count: 1, error: null })],
       products: [query({ data: null, count: 1, error: null })],

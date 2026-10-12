@@ -16,11 +16,18 @@ export function validateReferenceQuery(query, { allowFeatured = false } = {}) {
 
   if ("q" in query) {
     if (typeof query.q !== "string" || query.q.trim().length > 100) {
-      errors.push({ field: "q", message: "must be a string of at most 100 characters" });
+      errors.push({
+        field: "q",
+        message: "must be a string of at most 100 characters",
+      });
     }
   }
 
-  if (allowFeatured && "featured" in query && !["true", "false"].includes(query.featured)) {
+  if (
+    allowFeatured &&
+    "featured" in query &&
+    !["true", "false"].includes(query.featured)
+  ) {
     errors.push({ field: "featured", message: "must be true or false" });
   }
 

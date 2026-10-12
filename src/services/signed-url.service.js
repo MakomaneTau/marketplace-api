@@ -1,6 +1,9 @@
 // The API may reach local Supabase through Docker's internal hostname while
 // signed Storage links are opened by a browser on the host machine.
-export function browserSignedUrl(signedUrl, browserBase = process.env.BROWSER_SUPABASE_URL) {
+export function browserSignedUrl(
+  signedUrl,
+  browserBase = process.env.BROWSER_SUPABASE_URL,
+) {
   if (!browserBase) return signedUrl;
 
   const internal = new URL(signedUrl);

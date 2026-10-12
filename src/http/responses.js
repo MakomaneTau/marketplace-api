@@ -6,7 +6,7 @@ export function sendData(res, data, { status = 200, meta } = {}) {
 
 export function sendError(
   res,
-  { status = 500, code = "INTERNAL_SERVER_ERROR", message, details }
+  { status = 500, code = "INTERNAL_SERVER_ERROR", message, details },
 ) {
   const error = {
     code,

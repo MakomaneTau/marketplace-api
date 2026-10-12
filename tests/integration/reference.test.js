@@ -46,7 +46,7 @@ describe("reference-data API", () => {
     referenceService.listCategories.mockResolvedValue([category]);
 
     const response = await request(app).get(
-      "/api/v1/categories?q=text&featured=true"
+      "/api/v1/categories?q=text&featured=true",
     );
 
     expect(response.status).toBe(200);
@@ -82,15 +82,20 @@ describe("reference-data API", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ data: [university] });
-    expect(referenceService.listUniversities).toHaveBeenCalledWith({ q: "wits" });
+    expect(referenceService.listUniversities).toHaveBeenCalledWith({
+      q: "wits",
+    });
   });
 
   it("gets a university with its campuses", async () => {
-    const result = { ...university, campuses: [{ id: "campus-1", name: "Braamfontein" }] };
+    const result = {
+      ...university,
+      campuses: [{ id: "campus-1", name: "Braamfontein" }],
+    };
     referenceService.getUniversity.mockResolvedValue(result);
 
     const response = await request(app).get(
-      "/api/v1/universities/university-of-the-witwatersrand"
+      "/api/v1/universities/university-of-the-witwatersrand",
     );
 
     expect(response.status).toBe(200);
@@ -98,11 +103,14 @@ describe("reference-data API", () => {
   });
 
   it("lists campuses for a university", async () => {
-    const result = { university, campuses: [{ id: "campus-1", name: "Braamfontein" }] };
+    const result = {
+      university,
+      campuses: [{ id: "campus-1", name: "Braamfontein" }],
+    };
     referenceService.listCampuses.mockResolvedValue(result);
 
     const response = await request(app).get(
-      "/api/v1/universities/university-of-the-witwatersrand/campuses"
+      "/api/v1/universities/university-of-the-witwatersrand/campuses",
     );
 
     expect(response.status).toBe(200);
@@ -114,8 +122,8 @@ describe("reference-data API", () => {
       new referenceService.ReferenceServiceError(
         404,
         "CATEGORY_NOT_FOUND",
-        "Category not found."
-      )
+        "Category not found.",
+      ),
     );
 
     const response = await request(app).get("/api/v1/categories/not-found");

@@ -40,8 +40,10 @@ export async function listCategories(req, res) {
       await referenceService.listCategories({
         q: req.query.q,
         featured:
-          req.query.featured === undefined ? undefined : req.query.featured === "true",
-      })
+          req.query.featured === undefined
+            ? undefined
+            : req.query.featured === "true",
+      }),
     );
   } catch (error) {
     return serviceError(res, error);
@@ -66,7 +68,7 @@ export async function listUniversities(req, res) {
   try {
     return sendData(
       res,
-      await referenceService.listUniversities({ q: req.query.q })
+      await referenceService.listUniversities({ q: req.query.q }),
     );
   } catch (error) {
     return serviceError(res, error);

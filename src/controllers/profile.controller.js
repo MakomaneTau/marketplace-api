@@ -37,7 +37,10 @@ export async function updateProfile(req, res) {
   }
 
   try {
-    return sendData(res, await profileService.updateProfile(req.user.id, req.body));
+    return sendData(
+      res,
+      await profileService.updateProfile(req.user.id, req.body),
+    );
   } catch (error) {
     return handleError(res, error);
   }

@@ -66,7 +66,10 @@ describe("seller verification API", () => {
     const response = await request(app)
       .post("/api/v1/verifications/seller")
       .set("Authorization", "Bearer seller-token")
-      .attach("selfie", png, { filename: "selfie.png", contentType: "image/png" });
+      .attach("selfie", png, {
+        filename: "selfie.png",
+        contentType: "image/png",
+      });
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe("VERIFICATION_FILES_REQUIRED");
@@ -80,8 +83,14 @@ describe("seller verification API", () => {
     const response = await request(app)
       .post("/api/v1/verifications/seller")
       .set("Authorization", "Bearer seller-token")
-      .attach("selfie", png, { filename: "selfie.png", contentType: "image/png" })
-      .attach("sellerId", png, { filename: "id.png", contentType: "image/png" });
+      .attach("selfie", png, {
+        filename: "selfie.png",
+        contentType: "image/png",
+      })
+      .attach("sellerId", png, {
+        filename: "id.png",
+        contentType: "image/png",
+      });
 
     expect(response.status, JSON.stringify(response.body)).toBe(201);
     expect(response.body).toEqual({ data: submission });
@@ -90,7 +99,7 @@ describe("seller verification API", () => {
       expect.objectContaining({
         selfie: expect.objectContaining({ mimetype: "image/png" }),
         sellerId: expect.objectContaining({ mimetype: "image/png" }),
-      })
+      }),
     );
   });
 

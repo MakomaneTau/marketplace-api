@@ -25,7 +25,9 @@ describe("API contract", () => {
       code: "INVALID_JSON",
       message: "The request body must contain valid JSON.",
     });
-    expect(response.body.error.request_id).toBe(response.headers["x-request-id"]);
+    expect(response.body.error.request_id).toBe(
+      response.headers["x-request-id"],
+    );
   });
 
   it("returns a structured JSON response for unknown routes", async () => {
@@ -36,7 +38,9 @@ describe("API contract", () => {
       code: "ROUTE_NOT_FOUND",
       message: "The requested API route does not exist.",
     });
-    expect(response.body.error.request_id).toBe(response.headers["x-request-id"]);
+    expect(response.body.error.request_id).toBe(
+      response.headers["x-request-id"],
+    );
   });
 
   it("exposes authentication under the versioned API", async () => {
@@ -44,6 +48,8 @@ describe("API contract", () => {
 
     expect(response.status).toBe(401);
     expect(response.body.error.code).toBe("AUTH_TOKEN_MISSING");
-    expect(response.body.error.request_id).toBe(response.headers["x-request-id"]);
+    expect(response.body.error.request_id).toBe(
+      response.headers["x-request-id"],
+    );
   });
 });

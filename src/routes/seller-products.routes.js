@@ -16,6 +16,10 @@ sellerProductsRouter.get("/", listSellerProducts);
 sellerProductsRouter.post("/", createSellerProduct);
 sellerProductsRouter.patch("/:id", updateSellerProduct);
 sellerProductsRouter.delete("/:id", deleteProduct);
-sellerProductsRouter.post("/:id/images", marketplaceImageUpload, addProductImage);
+sellerProductsRouter.post(
+  "/:id/images",
+  marketplaceImageUpload,
+  addProductImage,
+);
 sellerProductsRouter.delete("/:id/images/:index", removeProductImage);
 export default sellerProductsRouter;

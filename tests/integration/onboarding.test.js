@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import request from "supertest";
 
-vi.mock("../../src/services/auth.service.js", () => ({ getUserFromAccessToken: vi.fn() }));
+vi.mock("../../src/services/auth.service.js", () => ({
+  getUserFromAccessToken: vi.fn(),
+}));
 vi.mock("../../src/services/onboarding.service.js", () => {
   class OnboardingServiceError extends Error {
     constructor() {
@@ -10,7 +12,11 @@ vi.mock("../../src/services/onboarding.service.js", () => {
       this.code = "ONBOARDING_UNAVAILABLE";
     }
   }
-  return { OnboardingServiceError, getOnboarding: vi.fn(), updateOnboarding: vi.fn() };
+  return {
+    OnboardingServiceError,
+    getOnboarding: vi.fn(),
+    updateOnboarding: vi.fn(),
+  };
 });
 
 import app from "../../src/app.js";
@@ -22,7 +28,10 @@ const userId = "123e4567-e89b-42d3-a456-426614174000";
 describe("onboarding API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    getUserFromAccessToken.mockResolvedValue({ user: { id: userId }, error: null });
+    getUserFromAccessToken.mockResolvedValue({
+      user: { id: userId },
+      error: null,
+    });
   });
 
   it("returns role-aware onboarding progress", async () => {
@@ -34,7 +43,9 @@ describe("onboarding API", () => {
       steps: { campus: false, favourite: false, message: false, order: false },
     });
 
-    const response = await request(app).get("/api/v1/onboarding").set("Authorization", "Bearer token");
+    const response = await request(app)
+      .get("/api/v1/onboarding")
+      .set("Authorization", "Bearer token");
 
     expect(response.status).toBe(200);
     expect(response.body.data.role).toBe("buyer");
@@ -42,7 +53,10 @@ describe("onboarding API", () => {
   });
 
   it("updates supported onboarding preferences", async () => {
-    onboardingService.updateOnboarding.mockResolvedValue({ welcomeSeen: true, dismissed: false });
+    onboardingService.updateOnboarding.mockResolvedValue({
+      welcomeSeen: true,
+      dismissed: false,
+    });
 
     const response = await request(app)
       .patch("/api/v1/onboarding")
@@ -50,7 +64,10 @@ describe("onboarding API", () => {
       .send({ welcomeSeen: true, dismissed: false });
 
     expect(response.status).toBe(200);
-    expect(onboardingService.updateOnboarding).toHaveBeenCalledWith(userId, { welcomeSeen: true, dismissed: false });
+    expect(onboardingService.updateOnboarding).toHaveBeenCalledWith(userId, {
+      welcomeSeen: true,
+      dismissed: false,
+    });
   });
 
   it("rejects unknown and invalid fields", async () => {

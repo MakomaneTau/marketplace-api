@@ -40,12 +40,20 @@ import {
   signup,
   login,
 } from "../../src/services/auth.service.js";
-import { resolveUniversityId, updateProfile } from "../../src/services/profile.service.js";
+import {
+  resolveUniversityId,
+  updateProfile,
+} from "../../src/services/profile.service.js";
 
 describe("unconfirmed email login", () => {
   it("explains verification instead of returning a generic authentication error", async () => {
-    mocks.signInWithPassword.mockResolvedValue({ data: {}, error: { code: "email_not_confirmed", status: 400 } });
-    await expect(login({ email: "pending@example.com", password: "Password123!" })).rejects.toMatchObject({
+    mocks.signInWithPassword.mockResolvedValue({
+      data: {},
+      error: { code: "email_not_confirmed", status: 400 },
+    });
+    await expect(
+      login({ email: "pending@example.com", password: "Password123!" }),
+    ).rejects.toMatchObject({
       status: 403,
       code: "AUTH_EMAIL_NOT_CONFIRMED",
       message: expect.stringContaining("Confirm your email"),
@@ -59,38 +67,75 @@ describe("signup without student numbers", () => {
     mocks.deleteUser.mockResolvedValue({});
   });
 
-  it.each(["buyer", "seller"])("preserves the %s university without requiring student fields", async (role) => {
-    mocks.signUp.mockResolvedValue({ data: { user: { id: "new-user" }, session: null }, error: null });
-    await signup({ firstName: "Test", lastName: "User", email: "test@example.com", password: "Password123!", role, universitySlug: "test-university" });
-    expect(resolveUniversityId).toHaveBeenCalledWith("test-university");
-    expect(updateProfile).toHaveBeenCalledWith("new-user", { universitySlug: "test-university" });
-    const metadata = mocks.signUp.mock.calls[0][0].options.data;
-    expect(metadata.isStudent).toBe(role === "buyer");
-    expect(metadata).not.toHaveProperty("studentNumber");
-  });
+  it.each(["buyer", "seller"])(
+    "preserves the %s university without requiring student fields",
+    async (role) => {
+      mocks.signUp.mockResolvedValue({
+        data: { user: { id: "new-user" }, session: null },
+        error: null,
+      });
+      await signup({
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com",
+        password: "Password123!",
+        role,
+        universitySlug: "test-university",
+      });
+      expect(resolveUniversityId).toHaveBeenCalledWith("test-university");
+      expect(updateProfile).toHaveBeenCalledWith("new-user", {
+        universitySlug: "test-university",
+      });
+      const metadata = mocks.signUp.mock.calls[0][0].options.data;
+      expect(metadata.isStudent).toBe(role === "buyer");
+      expect(metadata).not.toHaveProperty("studentNumber");
+    },
+  );
 
   it("allows a seller to omit university", async () => {
-    mocks.signUp.mockResolvedValue({ data: { user: { id: "new-user" }, session: null }, error: null });
-    await signup({ firstName: "Test", lastName: "User", email: "test@example.com", password: "Password123!", role: "seller" });
+    mocks.signUp.mockResolvedValue({
+      data: { user: { id: "new-user" }, session: null },
+      error: null,
+    });
+    await signup({
+      firstName: "Test",
+      lastName: "User",
+      email: "test@example.com",
+      password: "Password123!",
+      role: "seller",
+    });
     expect(resolveUniversityId).not.toHaveBeenCalled();
-    expect(updateProfile).toHaveBeenCalledWith("new-user", { universitySlug: null });
+    expect(updateProfile).toHaveBeenCalledWith("new-user", {
+      universitySlug: null,
+    });
   });
 
   it("reports profile trigger failures without presenting them as Supabase Auth signup failures", async () => {
-    mocks.signUp.mockResolvedValue({ data: { user: { id: "new-user" }, session: null }, error: null });
-    updateProfile.mockRejectedValue(Object.assign(new Error("Profile not found."), {
-      name: "ProfileServiceError",
-      status: 404,
-      code: "PROFILE_NOT_FOUND",
-    }));
+    mocks.signUp.mockResolvedValue({
+      data: { user: { id: "new-user" }, session: null },
+      error: null,
+    });
+    updateProfile.mockRejectedValue(
+      Object.assign(new Error("Profile not found."), {
+        name: "ProfileServiceError",
+        status: 404,
+        code: "PROFILE_NOT_FOUND",
+      }),
+    );
 
     await expectAuthError(
-      signup({ firstName: "Test", lastName: "User", email: "test@example.com", password: "Password123!", role: "buyer" }),
+      signup({
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com",
+        password: "Password123!",
+        role: "buyer",
+      }),
       {
         status: 503,
         code: "AUTH_PROFILE_SYNC_FAILED",
         message: expect.stringContaining("profile setup"),
-      }
+      },
     );
   });
 });
@@ -117,29 +162,35 @@ describe("password recovery errors", () => {
   });
 
   it("explains when the new password matches the current password", async () => {
-    fetch.mockResolvedValue(authResponse(422, {
-      code: 422,
-      error_code: "same_password",
-      msg: "New password should be different from the old password.",
-    }));
+    fetch.mockResolvedValue(
+      authResponse(422, {
+        code: 422,
+        error_code: "same_password",
+        msg: "New password should be different from the old password.",
+      }),
+    );
 
     await expectAuthError(resetPassword("recovery-token", "Password123!"), {
       status: 422,
       code: "AUTH_PASSWORD_UNCHANGED",
-      message: "Your new password must be different from your current password.",
+      message:
+        "Your new password must be different from your current password.",
     });
   });
 
   it("maps weak passwords without exposing provider details", async () => {
-    fetch.mockResolvedValue(authResponse(422, {
-      error_code: "weak_password",
-      msg: "provider-specific password details",
-    }));
+    fetch.mockResolvedValue(
+      authResponse(422, {
+        error_code: "weak_password",
+        msg: "provider-specific password details",
+      }),
+    );
 
     await expectAuthError(resetPassword("recovery-token", "password"), {
       status: 400,
       code: "AUTH_PASSWORD_WEAK",
-      message: "Choose a stronger password that meets the password requirements.",
+      message:
+        "Choose a stronger password that meets the password requirements.",
     });
   });
 
@@ -182,13 +233,15 @@ describe("password recovery errors", () => {
   it("accepts a successful password update with an empty response", async () => {
     fetch.mockResolvedValue(authResponse(204));
 
-    await expect(resetPassword("recovery-token", "Password123!")).resolves.toBeUndefined();
+    await expect(
+      resetPassword("recovery-token", "Password123!"),
+    ).resolves.toBeUndefined();
     expect(fetch).toHaveBeenCalledWith(
       "http://127.0.0.1:54321/auth/v1/user",
       expect.objectContaining({
         method: "PUT",
         body: JSON.stringify({ password: "Password123!" }),
-      })
+      }),
     );
   });
 

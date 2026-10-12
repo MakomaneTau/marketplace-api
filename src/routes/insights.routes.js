@@ -1,1 +1,8 @@
-import{Router}from"express";import{authenticate}from"../middleware/authenticate.js";import{analytics,dashboard}from"../controllers/insights.controller.js";const r=Router();r.use(authenticate);r.get("/dashboard",dashboard);r.get("/analytics",analytics);export default r;
+import { Router } from "express";
+import { authenticate } from "../middleware/authenticate.js";
+import { analytics, dashboard } from "../controllers/insights.controller.js";
+const r = Router();
+r.use(authenticate);
+r.get("/dashboard", dashboard);
+r.get("/analytics", analytics);
+export default r;

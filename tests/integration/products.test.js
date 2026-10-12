@@ -34,7 +34,10 @@ import * as productsService from "../../src/services/products.service.js";
 const PRODUCT_ID = "123e4567-e89b-42d3-a456-426614174000";
 const SHOP_ID = "223e4567-e89b-42d3-a456-426614174000";
 const CATEGORY_ID = "323e4567-e89b-42d3-a456-426614174000";
-const SELLER = { id: "423e4567-e89b-42d3-a456-426614174000", email: "seller@example.com" };
+const SELLER = {
+  id: "423e4567-e89b-42d3-a456-426614174000",
+  email: "seller@example.com",
+};
 
 const product = {
   id: PRODUCT_ID,
@@ -65,7 +68,11 @@ describe("products API", () => {
 
   it("lets public users list active products", async () => {
     productsService.listProducts.mockResolvedValue({
-      products: [product], page: 1, limit: 24, total: 1, totalPages: 1,
+      products: [product],
+      page: 1,
+      limit: 24,
+      total: 1,
+      totalPages: 1,
     });
 
     const response = await request(app).get("/api/products");
@@ -76,43 +83,62 @@ describe("products API", () => {
       meta: { page: 1, limit: 24, total: 1, totalPages: 1 },
     });
     expect(productsService.listProducts).toHaveBeenCalledWith({
-      q: undefined, category: undefined, slug: undefined, shop: undefined, condition: undefined, sort: undefined,
-      page: 1, limit: 24,
+      q: undefined,
+      category: undefined,
+      slug: undefined,
+      shop: undefined,
+      condition: undefined,
+      sort: undefined,
+      page: 1,
+      limit: 24,
     });
     expect(getUserFromAccessToken).not.toHaveBeenCalled();
   });
 
   it("lets public users list active products from one shop", async () => {
     productsService.listProducts.mockResolvedValue({
-      products: [product], page: 1, limit: 4, total: 1, totalPages: 1,
+      products: [product],
+      page: 1,
+      limit: 4,
+      total: 1,
+      totalPages: 1,
     });
 
-    const response = await request(app).get("/api/v1/products?shop=campus-store&limit=4");
+    const response = await request(app).get(
+      "/api/v1/products?shop=campus-store&limit=4",
+    );
 
     expect(response.status).toBe(200);
     expect(response.body.data).toEqual([product]);
     expect(productsService.listProducts).toHaveBeenCalledWith(
-      expect.objectContaining({ shop: "campus-store", limit: 4 })
+      expect.objectContaining({ shop: "campus-store", limit: 4 }),
     );
   });
 
   it("lets public users resolve one product by its readable slug", async () => {
     productsService.listProducts.mockResolvedValue({
-      products: [product], page: 1, limit: 1, total: 1, totalPages: 1,
+      products: [product],
+      page: 1,
+      limit: 1,
+      total: 1,
+      totalPages: 1,
     });
 
-    const response = await request(app)
-      .get(`/api/v1/products?slug=${product.slug}&limit=1`);
+    const response = await request(app).get(
+      `/api/v1/products?slug=${product.slug}&limit=1`,
+    );
 
     expect(response.status).toBe(200);
     expect(response.body.data).toEqual([product]);
     expect(productsService.listProducts).toHaveBeenCalledWith(
-      expect.objectContaining({ slug: product.slug, limit: 1 })
+      expect.objectContaining({ slug: product.slug, limit: 1 }),
     );
   });
 
   it("rejects malformed public product slugs", async () => {
-    const response = await request(app).get("/api/v1/products?slug=Not-A-Public-Slug");
+    const response = await request(app).get(
+      "/api/v1/products?slug=Not-A-Public-Slug",
+    );
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe("VALIDATION_ERROR");
@@ -131,7 +157,11 @@ describe("products API", () => {
 
   it("returns 404 when a product is not publicly visible", async () => {
     productsService.getProduct.mockRejectedValue(
-      new productsService.ProductServiceError(404, "PRODUCT_NOT_FOUND", "Product not found.")
+      new productsService.ProductServiceError(
+        404,
+        "PRODUCT_NOT_FOUND",
+        "Product not found.",
+      ),
     );
 
     const response = await request(app).get(`/api/products/${PRODUCT_ID}`);
@@ -162,7 +192,10 @@ describe("products API", () => {
 
     expect(response.status).toBe(201);
     expect(response.body).toEqual({ data: product });
-    expect(productsService.createProduct).toHaveBeenCalledWith(input, SELLER.id);
+    expect(productsService.createProduct).toHaveBeenCalledWith(
+      input,
+      SELLER.id,
+    );
   });
 
   it("rejects invalid product input before calling the service", async () => {
@@ -176,7 +209,7 @@ describe("products API", () => {
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe("VALIDATION_ERROR");
     expect(response.body.error.details).toEqual(
-      expect.arrayContaining([expect.objectContaining({ field: "shop_id" })])
+      expect.arrayContaining([expect.objectContaining({ field: "shop_id" })]),
     );
     expect(productsService.createProduct).not.toHaveBeenCalled();
   });
@@ -193,7 +226,11 @@ describe("products API", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ data: updated });
-    expect(productsService.updateProduct).toHaveBeenCalledWith(PRODUCT_ID, { price: 225 }, SELLER.id);
+    expect(productsService.updateProduct).toHaveBeenCalledWith(
+      PRODUCT_ID,
+      { price: 225 },
+      SELLER.id,
+    );
   });
 
   it("does not allow changing a product's shop", async () => {
@@ -205,7 +242,10 @@ describe("products API", () => {
       .send({ shop_id: SHOP_ID });
 
     expect(response.status).toBe(400);
-    expect(response.body.error.details).toContainEqual({ field: "shop_id", message: "is not allowed" });
+    expect(response.body.error.details).toContainEqual({
+      field: "shop_id",
+      message: "is not allowed",
+    });
     expect(productsService.updateProduct).not.toHaveBeenCalled();
   });
 
@@ -215,8 +255,8 @@ describe("products API", () => {
       new productsService.ProductServiceError(
         403,
         "SHOP_OWNERSHIP_REQUIRED",
-        "You can only manage products in your own shop."
-      )
+        "You can only manage products in your own shop.",
+      ),
     );
 
     const response = await request(app)
@@ -238,13 +278,20 @@ describe("products API", () => {
 
     expect(response.status).toBe(204);
     expect(response.body).toEqual({});
-    expect(productsService.deleteProduct).toHaveBeenCalledWith(PRODUCT_ID, SELLER.id);
+    expect(productsService.deleteProduct).toHaveBeenCalledWith(
+      PRODUCT_ID,
+      SELLER.id,
+    );
   });
 
   it("lists authenticated seller inventory with status filtering", async () => {
     authenticateSeller();
     productsService.listSellerProducts.mockResolvedValue({
-      products: [product], page: 1, limit: 10, total: 1, totalPages: 1,
+      products: [product],
+      page: 1,
+      limit: 10,
+      total: 1,
+      totalPages: 1,
     });
 
     const response = await request(app)
@@ -255,7 +302,7 @@ describe("products API", () => {
     expect(response.body.meta.total).toBe(1);
     expect(productsService.listSellerProducts).toHaveBeenCalledWith(
       SELLER.id,
-      expect.objectContaining({ status: "active", limit: 10 })
+      expect.objectContaining({ status: "active", limit: 10 }),
     );
   });
 
@@ -275,7 +322,10 @@ describe("products API", () => {
       .send(input);
 
     expect(response.status).toBe(201);
-    expect(productsService.createSellerProduct).toHaveBeenCalledWith(input, SELLER.id);
+    expect(productsService.createSellerProduct).toHaveBeenCalledWith(
+      input,
+      SELLER.id,
+    );
   });
 
   it("creates a seller product without optional description or pickup location", async () => {
@@ -289,7 +339,11 @@ describe("products API", () => {
     delete input.pickup_location;
     input.status = "draft";
     input.allows_delivery = true;
-    productsService.createSellerProduct.mockResolvedValue({ ...product, description: null, pickup_location: null });
+    productsService.createSellerProduct.mockResolvedValue({
+      ...product,
+      description: null,
+      pickup_location: null,
+    });
 
     const response = await request(app)
       .post("/api/v1/seller/products")
@@ -297,7 +351,10 @@ describe("products API", () => {
       .send(input);
 
     expect(response.status).toBe(201);
-    expect(productsService.createSellerProduct).toHaveBeenCalledWith(input, SELLER.id);
+    expect(productsService.createSellerProduct).toHaveBeenCalledWith(
+      input,
+      SELLER.id,
+    );
   });
 
   it("rejects client-managed product image URLs", async () => {
@@ -305,16 +362,26 @@ describe("products API", () => {
     const response = await request(app)
       .post("/api/v1/seller/products")
       .set("Authorization", "Bearer seller-token")
-      .send({ ...product, shop_id: undefined, image_urls: ["https://example.com/unmanaged.jpg"] });
+      .send({
+        ...product,
+        shop_id: undefined,
+        image_urls: ["https://example.com/unmanaged.jpg"],
+      });
 
     expect(response.status).toBe(400);
-    expect(response.body.error.details).toContainEqual({ field: "image_urls", message: "is managed by the API" });
+    expect(response.body.error.details).toContainEqual({
+      field: "image_urls",
+      message: "is managed by the API",
+    });
     expect(productsService.createSellerProduct).not.toHaveBeenCalled();
   });
 
   it("uploads a content-checked product image", async () => {
     authenticateSeller();
-    productsService.addProductImage.mockResolvedValue({ ...product, image_urls: ["https://local.test/book.png"] });
+    productsService.addProductImage.mockResolvedValue({
+      ...product,
+      image_urls: ["https://local.test/book.png"],
+    });
     const png = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 0]);
 
     const response = await request(app)
@@ -326,19 +393,26 @@ describe("products API", () => {
     expect(productsService.addProductImage).toHaveBeenCalledWith(
       PRODUCT_ID,
       SELLER.id,
-      expect.objectContaining({ mimetype: "image/png" })
+      expect.objectContaining({ mimetype: "image/png" }),
     );
   });
 
   it("removes an owned product image by index", async () => {
     authenticateSeller();
-    productsService.removeProductImage.mockResolvedValue({ ...product, image_urls: [] });
+    productsService.removeProductImage.mockResolvedValue({
+      ...product,
+      image_urls: [],
+    });
 
     const response = await request(app)
       .delete(`/api/v1/seller/products/${PRODUCT_ID}/images/0`)
       .set("Authorization", "Bearer seller-token");
 
     expect(response.status).toBe(200);
-    expect(productsService.removeProductImage).toHaveBeenCalledWith(PRODUCT_ID, 0, SELLER.id);
+    expect(productsService.removeProductImage).toHaveBeenCalledWith(
+      PRODUCT_ID,
+      0,
+      SELLER.id,
+    );
   });
 });

@@ -24,7 +24,7 @@ export async function getSellerVerification(req, res) {
   try {
     return sendData(
       res,
-      await verificationService.getSellerVerification(req.user.id)
+      await verificationService.getSellerVerification(req.user.id),
     );
   } catch (error) {
     return handleError(res, error);
@@ -49,7 +49,7 @@ export async function submitSellerVerification(req, res) {
         selfie,
         sellerId,
       }),
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     return handleError(res, error);

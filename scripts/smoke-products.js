@@ -11,7 +11,11 @@ import {
   updateProduct,
 } from "../src/services/products.service.js";
 import { createShop } from "../src/services/shops.service.js";
-import { listFavourites, removeFavourite, saveFavourite } from "../src/services/favourites.service.js";
+import {
+  listFavourites,
+  removeFavourite,
+  saveFavourite,
+} from "../src/services/favourites.service.js";
 
 const runId = randomUUID().slice(0, 8);
 const email = `product-smoke-${runId}@example.test`;
@@ -24,7 +28,8 @@ function assert(condition, message) {
 }
 
 async function cleanup() {
-  if (productId && userId) await deleteProduct(productId, userId).catch(() => undefined);
+  if (productId && userId)
+    await deleteProduct(productId, userId).catch(() => undefined);
   if (shopId) await supabaseAdmin.from("shops").delete().eq("id", shopId);
   if (userId) await supabaseAdmin.auth.admin.deleteUser(userId);
 }
@@ -37,38 +42,49 @@ try {
     .limit(1)
     .maybeSingle();
   if (categoryError) throw categoryError;
-  if (!category) throw new Error("No category exists. Run the documented local seed before this smoke test.");
+  if (!category)
+    throw new Error(
+      "No category exists. Run the documented local seed before this smoke test.",
+    );
 
-  const { data: created, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
-    email,
-    password: `Smoke-${randomUUID()}!`,
-    email_confirm: true,
-    user_metadata: {
-      firstName: "Product",
-      lastName: "Smoke",
-      display_name: "Product Smoke",
-      role: "seller",
-      isStudent: false,
-    },
-  });
+  const { data: created, error: createUserError } =
+    await supabaseAdmin.auth.admin.createUser({
+      email,
+      password: `Smoke-${randomUUID()}!`,
+      email_confirm: true,
+      user_metadata: {
+        firstName: "Product",
+        lastName: "Smoke",
+        display_name: "Product Smoke",
+        role: "seller",
+        isStudent: false,
+      },
+    });
   if (createUserError) throw createUserError;
   userId = created.user.id;
 
-  const shop = await createShop(userId, { name: `Product Smoke ${runId}`, isOpen: true });
+  const shop = await createShop(userId, {
+    name: `Product Smoke ${runId}`,
+    isOpen: true,
+  });
   shopId = shop.id;
-  const draft = await createSellerProduct({
-    category_id: category.id,
-    title: `Smoke test textbook ${runId}`,
-    description: "A disposable product used to validate the local catalogue workflow.",
-    condition: "good",
-    price: 125,
-    currency: "ZAR",
-    stock_quantity: 1,
-    pickup_location: "Local smoke-test campus",
-    allows_campus_pickup: true,
-    allows_delivery: false,
-    status: "draft",
-  }, userId);
+  const draft = await createSellerProduct(
+    {
+      category_id: category.id,
+      title: `Smoke test textbook ${runId}`,
+      description:
+        "A disposable product used to validate the local catalogue workflow.",
+      condition: "good",
+      price: 125,
+      currency: "ZAR",
+      stock_quantity: 1,
+      pickup_location: "Local smoke-test campus",
+      allows_campus_pickup: true,
+      allows_delivery: false,
+      status: "draft",
+    },
+    userId,
+  );
   productId = draft.id;
 
   const png = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 0]);
@@ -88,24 +104,50 @@ try {
     page: 1,
     limit: 5,
   });
-  const sellerList = await listSellerProducts(userId, { status: "active", page: 1, limit: 5 });
+  const sellerList = await listSellerProducts(userId, {
+    status: "active",
+    page: 1,
+    limit: 5,
+  });
 
   assert(publicProduct.id === productId, "Public product lookup failed.");
-  assert(publicList.products.some((product) => product.id === productId), "Filtered public listing failed.");
-  assert(sellerList.products.some((product) => product.id === productId), "Seller inventory listing failed.");
+  assert(
+    publicList.products.some((product) => product.id === productId),
+    "Filtered public listing failed.",
+  );
+  assert(
+    sellerList.products.some((product) => product.id === productId),
+    "Seller inventory listing failed.",
+  );
 
   await saveFavourite(userId, productId);
   await saveFavourite(userId, productId);
   const favourites = await listFavourites(userId, { page: 1, limit: 5 });
-  assert(favourites.products.some((product) => product.id === productId), "Favourite listing failed.");
+  assert(
+    favourites.products.some((product) => product.id === productId),
+    "Favourite listing failed.",
+  );
   await removeFavourite(userId, productId);
   const emptyFavourites = await listFavourites(userId, { page: 1, limit: 5 });
-  assert(!emptyFavourites.products.some((product) => product.id === productId), "Favourite removal failed.");
+  assert(
+    !emptyFavourites.products.some((product) => product.id === productId),
+    "Favourite removal failed.",
+  );
 
-  console.log(JSON.stringify({
-    status: "ok",
-    checks: ["seller draft", "managed image", "activation", "public filters", "seller inventory", "idempotent favourite", "favourite removal"],
-  }));
+  console.log(
+    JSON.stringify({
+      status: "ok",
+      checks: [
+        "seller draft",
+        "managed image",
+        "activation",
+        "public filters",
+        "seller inventory",
+        "idempotent favourite",
+        "favourite removal",
+      ],
+    }),
+  );
 } finally {
   await cleanup();
 }

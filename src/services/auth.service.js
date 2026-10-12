@@ -18,31 +18,55 @@ function authError(error, fallbackCode = "AUTH_SERVICE_UNAVAILABLE") {
     return new AuthServiceError(
       503,
       "AUTH_PROFILE_SYNC_FAILED",
-      "Your account was created, but profile setup could not be completed. Please try again shortly."
+      "Your account was created, but profile setup could not be completed. Please try again shortly.",
     );
   }
 
   if (code === "invalid_credentials") {
-    return new AuthServiceError(401, "AUTH_CREDENTIALS_INVALID", "Email or password is incorrect.");
+    return new AuthServiceError(
+      401,
+      "AUTH_CREDENTIALS_INVALID",
+      "Email or password is incorrect.",
+    );
   }
   if (code === "email_not_confirmed") {
-    return new AuthServiceError(403, "AUTH_EMAIL_NOT_CONFIRMED", "Confirm your email before signing in. Check your inbox and spam folder for the verification email.");
+    return new AuthServiceError(
+      403,
+      "AUTH_EMAIL_NOT_CONFIRMED",
+      "Confirm your email before signing in. Check your inbox and spam folder for the verification email.",
+    );
   }
   if (code === "user_already_exists") {
-    return new AuthServiceError(409, "AUTH_EMAIL_IN_USE", "An account already exists for this email address.");
+    return new AuthServiceError(
+      409,
+      "AUTH_EMAIL_IN_USE",
+      "An account already exists for this email address.",
+    );
   }
   if (code === "weak_password") {
-    return new AuthServiceError(400, "AUTH_PASSWORD_WEAK", "Choose a stronger password that meets the password requirements.");
+    return new AuthServiceError(
+      400,
+      "AUTH_PASSWORD_WEAK",
+      "Choose a stronger password that meets the password requirements.",
+    );
   }
   if (code === "same_password") {
-    return new AuthServiceError(422, "AUTH_PASSWORD_UNCHANGED", "Your new password must be different from your current password.");
+    return new AuthServiceError(
+      422,
+      "AUTH_PASSWORD_UNCHANGED",
+      "Your new password must be different from your current password.",
+    );
   }
   if (
     code === "over_email_send_rate_limit" ||
     code === "over_request_rate_limit" ||
     error?.status === 429
   ) {
-    return new AuthServiceError(429, "AUTH_RATE_LIMITED", "Too many requests. Please wait a moment and try again.");
+    return new AuthServiceError(
+      429,
+      "AUTH_RATE_LIMITED",
+      "Too many requests. Please wait a moment and try again.",
+    );
   }
   if (
     new Set([
@@ -57,21 +81,34 @@ function authError(error, fallbackCode = "AUTH_SERVICE_UNAVAILABLE") {
     error?.status === 401 ||
     error?.status === 403
   ) {
-    return new AuthServiceError(401, "AUTH_TOKEN_INVALID", "This password reset link is invalid or has expired.");
+    return new AuthServiceError(
+      401,
+      "AUTH_TOKEN_INVALID",
+      "This password reset link is invalid or has expired.",
+    );
   }
   if (error?.status === 400 || error?.status === 422) {
-    return new AuthServiceError(400, "AUTH_REQUEST_INVALID", "The authentication request could not be completed.");
+    return new AuthServiceError(
+      400,
+      "AUTH_REQUEST_INVALID",
+      "The authentication request could not be completed.",
+    );
   }
-  return new AuthServiceError(503, fallbackCode, "Authentication is temporarily unavailable.");
+  return new AuthServiceError(
+    503,
+    fallbackCode,
+    "Authentication is temporarily unavailable.",
+  );
 }
 
 function maskEmail(email) {
   const normalized = email?.trim().toLowerCase();
   if (!normalized || !normalized.includes("@")) return null;
   const [localPart, domain] = normalized.split("@");
-  const maskedLocal = localPart.length <= 2
-    ? `${localPart[0] ?? ""}*`
-    : `${localPart.slice(0, 2)}***`;
+  const maskedLocal =
+    localPart.length <= 2
+      ? `${localPart[0] ?? ""}*`
+      : `${localPart.slice(0, 2)}***`;
   return `${maskedLocal}@${domain}`;
 }
 
@@ -94,7 +131,7 @@ function logAuth(level, event, payload = {}) {
       event,
       service: "auth",
       ...payload,
-    })
+    }),
   );
 }
 
@@ -103,12 +140,12 @@ function sessionDto(data) {
     user: data.user,
     session: data.session
       ? {
-        accessToken: data.session.access_token,
-        refreshToken: data.session.refresh_token,
-        expiresAt: data.session.expires_at,
-        expiresIn: data.session.expires_in,
-        tokenType: data.session.token_type,
-      }
+          accessToken: data.session.access_token,
+          refreshToken: data.session.refresh_token,
+          expiresAt: data.session.expires_at,
+          expiresIn: data.session.expires_in,
+          tokenType: data.session.token_type,
+        }
       : null,
   };
 }
@@ -124,10 +161,21 @@ export async function getUserFromAccessToken(accessToken) {
     .eq("user_id", data.user.id)
     .maybeSingle();
   if (restriction.error) {
-    throw new AuthServiceError(503, "AUTH_SERVICE_UNAVAILABLE", "Authentication is temporarily unavailable.");
+    throw new AuthServiceError(
+      503,
+      "AUTH_SERVICE_UNAVAILABLE",
+      "Authentication is temporarily unavailable.",
+    );
   }
   if (restriction.data) {
-    return { user: null, error: new AuthServiceError(403, "ACCOUNT_SUSPENDED", "This account has been suspended. Contact support if you think this is a mistake.") };
+    return {
+      user: null,
+      error: new AuthServiceError(
+        403,
+        "ACCOUNT_SUSPENDED",
+        "This account has been suspended. Contact support if you think this is a mistake.",
+      ),
+    };
   }
 
   return {
@@ -137,10 +185,23 @@ export async function getUserFromAccessToken(accessToken) {
 }
 
 async function ensureAccountActive(userId) {
-  const { data, error } = await supabaseAdmin.from("account_restrictions")
-    .select("user_id").eq("user_id", userId).maybeSingle();
-  if (error) throw new AuthServiceError(503, "AUTH_SERVICE_UNAVAILABLE", "Authentication is temporarily unavailable.");
-  if (data) throw new AuthServiceError(403, "ACCOUNT_SUSPENDED", "This account has been suspended. Contact support if you think this is a mistake.");
+  const { data, error } = await supabaseAdmin
+    .from("account_restrictions")
+    .select("user_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error)
+    throw new AuthServiceError(
+      503,
+      "AUTH_SERVICE_UNAVAILABLE",
+      "Authentication is temporarily unavailable.",
+    );
+  if (data)
+    throw new AuthServiceError(
+      403,
+      "ACCOUNT_SUSPENDED",
+      "This account has been suspended. Contact support if you think this is a mistake.",
+    );
 }
 
 export async function signup(input) {
@@ -187,8 +248,7 @@ export async function signup(input) {
           lastName: input.lastName.trim(),
           display_name: `${input.firstName.trim()} ${input.lastName.trim()}`,
           role: input.role,
-          isStudent:
-            input.role === "buyer" || input.isStudent === true,
+          isStudent: input.role === "buyer" || input.isStudent === true,
         },
       },
     }));
@@ -231,9 +291,10 @@ export async function signup(input) {
     logAuth("error", "signup_profile_update_failed", {
       userId: data.user.id,
       error: serializeError(error),
-      probableCause: error?.code === "PROFILE_NOT_FOUND"
-        ? "auth.users profile trigger did not create public.profiles row"
-        : undefined,
+      probableCause:
+        error?.code === "PROFILE_NOT_FOUND"
+          ? "auth.users profile trigger did not create public.profiles row"
+          : undefined,
     });
 
     await supabaseAdmin.auth.admin
@@ -279,7 +340,7 @@ export async function refresh(refreshToken) {
     throw new AuthServiceError(
       401,
       "AUTH_REFRESH_TOKEN_INVALID",
-      "The refresh token is invalid or expired."
+      "The refresh token is invalid or expired.",
     );
   }
   await ensureAccountActive(data.user.id);
@@ -329,7 +390,7 @@ export async function requestPasswordReset(email) {
     : undefined;
   const { error } = await supabaseAuth.auth.resetPasswordForEmail(
     email.trim().toLowerCase(),
-    options
+    options,
   );
   if (error) throw authError(error);
 }

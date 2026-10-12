@@ -10,6 +10,10 @@ const verificationRouter = Router();
 
 verificationRouter.use(authenticate);
 verificationRouter.get("/seller", getSellerVerification);
-verificationRouter.post("/seller", verificationUpload, submitSellerVerification);
+verificationRouter.post(
+  "/seller",
+  verificationUpload,
+  submitSellerVerification,
+);
 
 export default verificationRouter;

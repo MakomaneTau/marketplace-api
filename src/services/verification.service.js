@@ -21,7 +21,7 @@ function unavailable() {
   return new VerificationServiceError(
     503,
     "VERIFICATION_SERVICE_UNAVAILABLE",
-    "Seller verification is temporarily unavailable."
+    "Seller verification is temporarily unavailable.",
   );
 }
 
@@ -47,7 +47,7 @@ async function requireSeller(userId) {
     throw new VerificationServiceError(
       403,
       "SELLER_REQUIRED",
-      "A seller account is required."
+      "A seller account is required.",
     );
   }
 }
@@ -73,7 +73,7 @@ export async function submitSellerVerification(userId, { selfie, sellerId }) {
     throw new VerificationServiceError(
       409,
       "VERIFICATION_ALREADY_PENDING",
-      "A seller verification submission is already pending."
+      "A seller verification submission is already pending.",
     );
   }
 
