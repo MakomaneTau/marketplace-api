@@ -1,3 +1,4 @@
+import { config } from "../config/env.js";
 import { supabaseAuth } from "../config/supabase-auth.js";
 import { supabaseAdmin } from "../config/supabase.js";
 import { resolveUniversityId, updateProfile } from "./profile.service.js";
@@ -124,7 +125,7 @@ function serializeError(error) {
 }
 
 function logAuth(level, event, payload = {}) {
-  if (process.env.NODE_ENV === "test") return;
+  if (config.nodeEnv === "test") return;
   console[level](
     JSON.stringify({
       level,
@@ -350,10 +351,10 @@ export async function refresh(refreshToken) {
 async function authApiRequest(path, { token, method = "POST", body } = {}) {
   let response;
   try {
-    response = await fetch(`${process.env.SUPABASE_URL}/auth/v1${path}`, {
+    response = await fetch(`${config.supabaseUrl}/auth/v1${path}`, {
       method,
       headers: {
-        apikey: process.env.SUPABASE_PUBLISHABLE_KEY,
+        apikey: config.supabasePublishableKey,
         authorization: `Bearer ${token}`,
         ...(body ? { "content-type": "application/json" } : {}),
       },
@@ -385,8 +386,8 @@ export async function logout(accessToken) {
 }
 
 export async function requestPasswordReset(email) {
-  const options = process.env.PASSWORD_RESET_REDIRECT_URL
-    ? { redirectTo: process.env.PASSWORD_RESET_REDIRECT_URL }
+  const options = config.passwordResetRedirectUrl
+    ? { redirectTo: config.passwordResetRedirectUrl }
     : undefined;
   const { error } = await supabaseAuth.auth.resetPasswordForEmail(
     email.trim().toLowerCase(),

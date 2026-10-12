@@ -1,8 +1,9 @@
+import { config } from "../config/env.js";
 export function requestLogger(req, res, next) {
   const startedAt = process.hrtime.bigint();
 
   res.on("finish", () => {
-    if (process.env.NODE_ENV === "test") return;
+    if (config.nodeEnv === "test") return;
 
     const durationMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
     console.info(

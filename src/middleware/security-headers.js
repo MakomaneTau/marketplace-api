@@ -1,3 +1,4 @@
+import { config } from "../config/env.js";
 export function securityHeaders(req, res, next) {
   res.set({
     "Cross-Origin-Resource-Policy": "same-site",
@@ -7,7 +8,7 @@ export function securityHeaders(req, res, next) {
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
     "X-Permitted-Cross-Domain-Policies": "none",
   });
-  if (process.env.NODE_ENV === "production")
+  if (config.nodeEnv === "production")
     res.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   next();
 }

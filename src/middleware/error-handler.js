@@ -1,3 +1,4 @@
+import { config } from "../config/env.js";
 import { ApiError } from "../errors/api-error.js";
 import { sendError } from "../http/responses.js";
 
@@ -35,7 +36,7 @@ export function errorHandler(error, req, res, next) {
     });
   }
 
-  if (process.env.NODE_ENV !== "test") {
+  if (config.nodeEnv !== "test") {
     console.error(
       JSON.stringify({
         level: "error",

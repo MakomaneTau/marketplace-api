@@ -1,3 +1,4 @@
+import { config } from "./config/env.js";
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
@@ -12,20 +13,13 @@ import { requestLogger } from "./middleware/request-logger.js";
 import { securityHeaders } from "./middleware/security-headers.js";
 
 const app = express();
-const allowedOrigins = (
-  process.env.CORS_ORIGINS ||
-  process.env.CORS_ORIGIN ||
-  "http://localhost:3000"
-)
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-if (process.env.TRUST_PROXY === "true") app.set("trust proxy", 1);
+
+if (config.trustProxy) app.set("trust proxy", 1);
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin))
+      if (!origin || config.allowedOrigins.includes(origin))
         return callback(null, true);
       return callback(null, false);
     },

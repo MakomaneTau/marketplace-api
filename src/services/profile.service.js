@@ -1,3 +1,4 @@
+import { config } from "../config/env.js";
 import { supabaseAdmin } from "../config/supabase.js";
 
 const PROFILE_SELECT = `
@@ -45,7 +46,7 @@ function toProfileDto(profile) {
 }
 
 function logProfile(level, event, payload = {}) {
-  if (process.env.NODE_ENV === "test") return;
+  if (config.nodeEnv === "test") return;
   console[level](
     JSON.stringify({
       level,
