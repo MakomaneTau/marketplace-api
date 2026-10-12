@@ -1,3 +1,5 @@
+> Historical snapshot. Current behavior and maintenance guidance are documented in the repository README and CONTRIBUTING.md.
+
 # API Readiness Report
 
 Validated locally on 2026-08-21 from the API-only web-parity integration series.

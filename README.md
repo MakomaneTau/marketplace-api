@@ -1,289 +1,133 @@
 # Marketplace API
 
-Express and Supabase API for the Marketplace application. It currently exposes
-health and authenticated-user endpoints together with public product discovery
-and seller-owned product management.
+Express 5 API for the student marketplace. Supabase provides Auth, PostgreSQL,
+and Storage. The API supports catalogue/reference data, buyer and seller
+accounts, shops, listings, favourites, orders, reviews, messaging, notifications,
+onboarding, verification, and admin moderation.
 
-## Stack
+The frontend is maintained in the separate `marketplace-web` repository.
+The versioned API contract is [docs/openapi.yaml](docs/openapi.yaml).
+Contributor responsibilities are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-- Node.js with ECMAScript modules
-- Express 5
-- Supabase (PostgreSQL, Auth, Storage, and local Studio)
-- `nodemon` for development reloads
+## Local setup
 
-## Prerequisites
-
-- Node.js 20 or newer
-- npm
-- Docker Desktop for Windows running Linux containers (required for local
-  Supabase and the containerized API workflow)
-
-## Local development
-
-Install dependencies from this directory:
+Prerequisites: Node.js 22.13 or newer, npm, and Docker Desktop running Linux
+containers. From this repository in PowerShell:
 
 ```powershell
-cd marketplace-api
-npm ci
+npm.cmd ci
+Copy-Item .env.example .env  # first setup only; keep existing local credentials
+npm.cmd run supabase:start
+npm.cmd run supabase:status
 ```
 
-### Run the API directly on Windows
-
-The application initializes its Supabase clients at startup. Create `.env` with
-the local Supabase URL, publishable key, and server-only secret key before
-starting Express:
+Copy the local publishable/anon and secret/service-role keys from the status
+output into `.env`. Then choose one API runner:
 
 ```powershell
-npm run dev
+npm.cmd run dev                 # direct Node runner with built-in watch mode
 ```
 
-The API listens on `http://localhost:4000` by default. Verify it with:
+or:
+
+```powershell
+docker compose up --build -d    # containerized API
+```
+
+Both use port 4000, so run only one at a time. Verify the listener with:
 
 ```powershell
 Invoke-RestMethod http://localhost:4000/api/health
 ```
 
-Expected response:
-
-```json
-{
-  "status": "ok",
-  "service": "marketplace-api"
-}
-```
-
-### Run with local Supabase
-
-The Supabase CLI is installed as a development dependency and uses Docker for
-its local services.
-
-1. Start Docker Desktop.
-2. Start Supabase and display its generated local credentials:
-
-   ```powershell
-   npm run supabase:start
-   npm run supabase:status
-   ```
-
-3. Create `.env` in this directory using the values printed by
-   `npm run supabase:status`:
-
-   ```dotenv
-   PORT=4000
-   CORS_ORIGIN=http://localhost:3000
-   SUPABASE_URL=http://127.0.0.1:55321
-   SUPABASE_PUBLISHABLE_KEY=<local publishable or anon key>
-   SUPABASE_SECRET_KEY=<local secret or service_role key>
-   DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55322/postgres
-   ```
-
-4. Start the API in a second terminal:
-
-   ```powershell
-   npm run dev
-   ```
-
-Local Supabase services include:
-
-| Service | URL |
-| --- | --- |
-| Data/Auth API | `http://127.0.0.1:55321` |
-| PostgreSQL | `postgresql://postgres:postgres@127.0.0.1:55322/postgres` |
-| Supabase Studio | `http://127.0.0.1:55323` |
-| Local email viewer | `http://127.0.0.1:55324` |
-
-Stop the local services when finished:
+`/api/health` is a process liveness check. Check a catalogue endpoint as well
+when diagnosing Supabase connectivity:
 
 ```powershell
-npm run supabase:stop
+Invoke-RestMethod "http://localhost:4000/api/v1/products?limit=1"
 ```
 
-## Environment variables
+| Local service             | URL                                                       |
+| ------------------------- | --------------------------------------------------------- |
+| API                       | `http://localhost:4000`                                   |
+| Supabase API/Auth/Storage | `http://localhost:55321`                                  |
+| PostgreSQL                | `postgresql://postgres:postgres@127.0.0.1:55322/postgres` |
+| Studio                    | `http://localhost:55323`                                  |
+| Email viewer              | `http://localhost:55324`                                  |
 
-| Variable | Required | Purpose |
-| --- | --- | --- |
-| `PORT` | No | Express port; defaults to `4000`. |
-| `CORS_ORIGIN` | No | Allowed browser origin; defaults to `http://localhost:3000`. |
-| `SUPABASE_URL` | For Supabase routes | Local or hosted Supabase project URL. |
-| `SUPABASE_SECRET_KEY` | For Supabase routes | Server-only secret/service-role key used by the admin client. |
-| `SUPABASE_PUBLISHABLE_KEY` | Yes | Public key used by the server to validate caller access tokens. |
-| `DATABASE_URL` | Not yet used | Direct PostgreSQL connection string reserved for database tooling or a future SQL client. |
+Supabase uses the 55320 port range because Windows may reserve its original
+54320 range. Inspect exclusions with
+`netsh interface ipv4 show excludedportrange protocol=tcp` if Docker cannot bind
+a port. See [README.Docker.md](README.Docker.md) for Docker operations.
 
-Never expose `SUPABASE_SECRET_KEY` to the browser or commit `.env`. The admin
-client disables session persistence and token refresh because it is intended
-for trusted server-side operations only.
+Stop the API with Ctrl+C or `docker compose down`. Stop Supabase with
+`npm.cmd run supabase:stop`; its default behavior preserves local data.
 
-The root `.gitignore` excludes local environment files. Still review
-`git status` before committing to ensure credentials are not included.
+## Configuration
 
-## Run the API with Docker Desktop
+Runtime configuration is loaded and validated in `src/config/env.js`.
 
-With the local Supabase stack running, build and start the Express container:
+| Variable                                      | Purpose                                                              |
+| --------------------------------------------- | -------------------------------------------------------------------- |
+| `SUPABASE_URL`                                | Required project API origin.                                         |
+| `SUPABASE_PUBLISHABLE_KEY`                    | Required public key for authentication.                              |
+| `SUPABASE_SECRET_KEY`                         | Required privileged key for trusted server queries.                  |
+| `PORT`                                        | Listener port, default 4000.                                         |
+| `CORS_ORIGINS` / `CORS_ORIGIN`                | Comma-separated allowed origins, default `http://localhost:3000`.    |
+| `TRUST_PROXY`                                 | Set `true` only behind the trusted single proxy expected by the app. |
+| `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX`     | Positive integer limits, default 60000 / 120.                        |
+| `PASSWORD_RESET_REDIRECT_URL`                 | Web password recovery destination.                                   |
+| `BROWSER_SUPABASE_URL`                        | Browser-accessible origin for private signed preview URLs.           |
+| `DOCKER_SUPABASE_URL` / `DOCKER_DATABASE_URL` | Compose values using `host.docker.internal`.                         |
+| `DATABASE_URL`                                | Direct database tooling connection.                                  |
 
-```powershell
-docker compose up --build -d
-docker compose ps
-Invoke-RestMethod http://localhost:4000/api/health
-```
+Never expose the secret/service-role key to the browser. Keep `.env` local.
+Compose reads environment values during container creation; recreate the API
+container after changing them. Public and privileged Supabase clients remain
+separate in `src/config/supabase-auth.js` and `src/config/supabase.js`.
 
-The container uses `host.docker.internal` to reach Supabase ports published by
-Docker Desktop on Windows. It cannot use `127.0.0.1` for Supabase because that
-address refers back to the API container.
-
-See [README.Docker.md](README.Docker.md) for first-time setup, the container
-network flow, rebuild/stop commands, ports, and Windows troubleshooting.
-
-## API endpoints
-
-| Method | Path | Description |
-| --- | --- | --- |
-| `GET` | `/api/health` | Confirms that the Express process is running. |
-| `GET` | `/api/v1/auth/me` | Returns the Supabase user for a valid bearer access token. |
-| `GET` | `/api/v1/products` | Searches, filters, sorts, and paginates active products from open shops. |
-| `GET` | `/api/v1/products/:id` | Returns one publicly visible product. |
-| `POST` | `/api/v1/products` | Creates a product for an authenticated seller's shop. |
-| `PATCH` | `/api/v1/products/:id` | Updates an authenticated seller-owned product. |
-| `DELETE` | `/api/v1/products/:id` | Deletes an authenticated seller-owned product. |
-| `GET` | `/api/v1/seller/products` | Lists the authenticated seller's inventory, including non-public statuses. |
-| `POST` | `/api/v1/seller/products` | Creates a draft product in the authenticated seller's shop. |
-| `PATCH` | `/api/v1/seller/products/:id` | Updates an authenticated seller-owned product. |
-| `DELETE` | `/api/v1/seller/products/:id` | Deletes an owned product and its managed images. |
-| `POST` | `/api/v1/seller/products/:id/images` | Appends one managed public product image. |
-| `DELETE` | `/api/v1/seller/products/:id/images/:index` | Removes one managed product image by ordered index. |
-| `GET` | `/api/v1/favourites` | Lists the authenticated user's currently public saved products. |
-| `PUT` | `/api/v1/favourites/:productId` | Idempotently saves a public product. |
-| `DELETE` | `/api/v1/favourites/:productId` | Removes a saved product. |
-| `GET` | `/api/v1/orders` | Lists the authenticated buyer's orders. |
-| `POST` | `/api/v1/orders` | Atomically creates a single-shop order and reserves stock. |
-| `GET` | `/api/v1/orders/:id` | Returns an order to its buyer or seller. |
-| `PATCH` | `/api/v1/orders/:id/status` | Cancels a new buyer order or applies a seller-controlled transition. |
-| `GET` | `/api/v1/seller/orders` | Lists orders placed with the authenticated seller's shop. |
-| `GET` | `/api/v1/seller/orders/:id` | Returns a seller-participating order. |
-| `PATCH` | `/api/v1/seller/orders/:id/status` | Advances or cancels a seller order. |
-| `GET/POST` | `/api/v1/conversations` | Lists conversations or starts an idempotent product conversation. |
-| `GET` | `/api/v1/conversations/:id` | Returns a participant-scoped conversation and messages. |
-| `POST` | `/api/v1/conversations/:id/messages` | Sends a message and notifies the other participant. |
-| `PATCH` | `/api/v1/conversations/:id/read` | Marks incoming conversation messages read. |
-| `GET` | `/api/v1/notifications` | Lists authenticated user notifications with unread filtering. |
-| `PATCH` | `/api/v1/notifications/:id/read` | Marks one owned notification read. |
-| `PATCH` | `/api/v1/notifications/read-all` | Marks all owned notifications read. |
-| `POST` | `/api/v1/orders/:id/reviews` | Creates one verified review per completed-order product. |
-| `GET` | `/api/v1/products/:id/reviews` | Lists public reviews for a product. |
-| `GET` | `/api/v1/shops/:slug/reviews` | Lists public reviews for a shop. |
-| `GET` | `/api/v1/seller/dashboard` | Returns seller inventory, order, view, unread, and recent-order summaries. |
-| `GET` | `/api/v1/seller/analytics` | Returns revenue and product analytics for supported time windows. |
-| `GET/PATCH` | `/api/v1/settings` | Reads or updates authenticated notification preferences. |
-| `GET` | `/api/v1/categories` | Lists categories with public active-product counts. |
-| `GET` | `/api/v1/categories/:slug` | Returns one category by slug. |
-| `GET` | `/api/v1/universities` | Lists searchable universities with campus counts. |
-| `GET` | `/api/v1/universities/:slug` | Returns a university and its campuses. |
-| `GET` | `/api/v1/universities/:slug/campuses` | Lists campuses for a university. |
-| `POST` | `/api/v1/auth/signup` | Creates a buyer or seller account. |
-| `POST` | `/api/v1/auth/login` | Exchanges credentials for a Supabase session. |
-| `POST` | `/api/v1/auth/refresh` | Rotates a valid refresh token. |
-| `POST` | `/api/v1/auth/logout` | Revokes the authenticated user's sessions. |
-| `POST` | `/api/v1/auth/forgot-password` | Requests password recovery without revealing account existence. |
-| `POST` | `/api/v1/auth/reset-password` | Changes the password using a recovery access token. |
-| `GET` | `/api/v1/profile` | Returns the authenticated marketplace profile. |
-| `PATCH` | `/api/v1/profile` | Updates user-managed profile fields. |
-| `GET` | `/api/v1/verifications/seller` | Returns the seller's latest verification state. |
-| `POST` | `/api/v1/verifications/seller` | Uploads private `selfie` and `sellerId` verification images. |
-| `GET` | `/api/v1/shops/:slug` | Returns an open public shop and pickup areas. |
-| `GET` | `/api/v1/seller/shop` | Returns the authenticated seller's shop. |
-| `POST` | `/api/v1/seller/shop` | Creates the seller's single shop. |
-| `PATCH` | `/api/v1/seller/shop` | Updates shop identity and open state. |
-| `PUT` | `/api/v1/seller/shop/pickup-areas` | Atomically replaces campus pickup areas. |
-| `POST` | `/api/v1/seller/shop/logo` | Replaces the public shop logo image. |
-| `POST` | `/api/v1/seller/shop/banner` | Replaces the public shop banner image. |
-
-Protected endpoints require `Authorization: Bearer <Supabase access token>`.
-The product write endpoints also verify the seller role and shop ownership.
-Verification uploads accept JPEG, PNG, or WebP files up to 5 MB each. Their
-content signatures are checked before storage in a private bucket, and API
-responses never expose the stored object paths.
-The former unversioned auth and product paths remain temporary compatibility
-aliases. New consumers should use `/api/v1`.
-
-Successful versioned responses use a top-level `data` member. Errors use an
-`error` object with a stable code, message, and request ID. The same request ID
-is returned in the `X-Request-Id` response header. See
-[`docs/openapi.yaml`](docs/openapi.yaml) for the machine-readable contract.
-
-JSON request bodies are enabled. CORS currently accepts credentialed requests
-only from `http://localhost:3000`; update the allow-list in `src/app.js` when
-adding another local or deployed frontend origin.
-
-## Scripts
-
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Run `src/server.js` with automatic reloads. |
-| `npm run typecheck` | Check the API JavaScript files for syntax errors. |
-| `npm run build` | Run the API validation required for the production image. |
-| `npm run supabase:start` | Start the local Supabase stack. |
-| `npm run supabase:status` | Show local service URLs and credentials. |
-| `npm run supabase:stop` | Stop the local Supabase stack. |
-| `npm run supabase:reset` | Recreate the local database and apply migrations/seed data. |
-| `npm run supabase:lint` | Lint the currently running local database schema. |
-| `npm run smoke:local` | Exercise seeded authentication and product CRUD against running local services. |
-| `npm run smoke:products` | Exercise the live seller catalogue workflow with disposable local records. |
-| `npm run smoke:favourites` | Exercise the catalogue plus idempotent saved-product workflow. |
-| `npm run smoke:orders` | Validate totals, transitions, and stock changes inside a rolled-back SQL transaction. |
-| `npm run smoke:messaging` | Validate conversations, messages, and notification creation inside a rollback. |
-| `npm run smoke:settings` | Validate default and persisted settings with a disposable local user. |
-| `npm run acceptance:local` | Run the complete non-destructive Windows API acceptance suite. |
-| `npm test` | Run the Vitest integration test suite. |
-
-## Folder structure
+## Structure
 
 ```text
-marketplace-api/
-|-- src/
-|   |-- app.js                 # Express setup, middleware, and routes
-|   |-- server.js              # Environment loading and HTTP listener
-|   `-- config/
-|       `-- supabase.js        # Validated server-side Supabase admin client
-|-- supabase/
-|   |-- config.toml            # Local Supabase services and ordered seeds
-|   |-- migrations/            # Reproducible schema, RLS, grants, and functions
-|   `-- seeds/                 # Local-only accounts and marketplace sample data
-|-- scripts/
-|   |-- smoke-local.js         # Live local Auth and product CRUD check
-|   `-- smoke-products.js      # Disposable seller catalogue workflow check
-|-- .env.example               # Safe host and Docker environment template
-|-- .gitignore                 # Dependencies, secrets, and generated files
-|-- Dockerfile                 # Production Express image definition
-|-- compose.yaml               # Docker Desktop API service and health check
-|-- tests/                     # Vitest/Supertest integration tests
-|-- package.json               # Dependencies and npm scripts
-`-- README.Docker.md            # Docker Desktop for Windows runbook
+src/
+  app.js                 Express construction, middleware, and route mounting
+  server.js              Listener, signals, and graceful shutdown
+  config/                Validated environment and Supabase clients
+  routes/                URL/middleware composition, including v1.routes.js
+  controllers/           HTTP request validation and response orchestration
+  validators/            Pure input checks
+  services/              Feature rules, queries, DTOs, and service errors
+  http/                  Shared response envelopes and service error handling
+  errors/                Base ApiError
+  middleware/            Auth, uploads, headers, rate limiting, and logging
+tests/
+  unit/                  Isolated service/helper tests
+  integration/           Express HTTP contracts with mocked services
+  setup/                 Test environment
+scripts/                 Syntax checks, local acceptance/smoke tests, admin setup
+supabase/                Config, immutable migrations, seeds, and SQL tests
+docs/                    OpenAPI, operations, and historical implementation reports
 ```
 
-`npm run supabase:reset` replaces all current local rows, reapplies the ordered
-migrations, and imports the configured local seeds. Do not run it when the
-current local data must be preserved.
+Routes under `/api/v1` are the primary interface. Legacy `/api/auth` and
+`/api/products` mounts remain for compatibility. Responses use `{ data, meta? }`
+or `{ error: { code, message, details?, request_id? } }`.
 
-## Current development notes
+## Quality checks
 
-- The health endpoint verifies only the Express process. Use
-  `npm run smoke:local` to verify seeded Auth/product CRUD, or
-  `npm run smoke:products` to verify seller-owned catalogue discovery and
-  managed image storage. The product smoke test requires at least one seeded
-  category and removes the user, shop, product, and image it creates.
-- Run `npm run acceptance:local` for the complete API-only readiness check. It
-  requires Docker-backed local Supabase and does not reset the database. See
-  [`docs/API_READINESS_REPORT.md`](docs/API_READINESS_REPORT.md) for scope and
-  the remaining frontend integration boundary.
-- Keep route handlers thin as the API grows. Put reusable business logic and
-  data access in dedicated `services/` or `repositories/` modules.
-- Validate request data and add centralized error handling before exposing
-  write endpoints.
-- Keep `.env.example` limited to safe placeholders as new required variables
-  are introduced; never copy real keys into that tracked template.
-- The Docker image is a production-style image and does not include `nodemon`
-  or mount the source directory. Rebuild it after code changes.
+```powershell
+npm.cmd run format       # apply the shared formatting rules
+npm.cmd run check        # format check, lint, JavaScript syntax, unit/integration tests
+npm.cmd run audit:production
+```
 
-## Related application
+The `typecheck` and `build` scripts are JavaScript syntax checks, not static
+type checks or bundling. The API runs source modules directly. `npm test` uses
+mocked services and does not require a live database. Local smoke commands
+exercise the real Supabase stack; see `scripts/acceptance-local.ps1` and
+[docs/ADMIN_OPERATIONS.md](docs/ADMIN_OPERATIONS.md).
 
-The frontend lives in the separate `marketplace-web` package and runs on
-`http://localhost:3000` during development.
+Database reset commands delete local data. Use new migrations for schema
+changes and select the relevant smoke tests without resetting a working stack.
+Historical implementation/readiness reports describe earlier snapshots;
+current source, OpenAPI, CI results, and live acceptance checks take precedence.

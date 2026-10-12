@@ -17,7 +17,7 @@ Windows browser / PowerShell
         v
 Marketplace API container
         |
-        | http://host.docker.internal:54321
+        | http://host.docker.internal:55321
         v
 Docker Desktop host bridge
         |
@@ -33,7 +33,7 @@ reach Supabase through the ports published on Windows.
 
 - Docker Desktop for Windows running Linux containers
 - Docker Compose v2 (`docker compose`)
-- Node.js 20 or newer and npm, used to run the local Supabase CLI
+- Node.js 22.13 or newer and npm, used to run the local Supabase CLI
 
 Verify Docker Desktop from PowerShell:
 
@@ -59,14 +59,14 @@ Copy the publishable/anon and secret/service-role keys printed by
 ```dotenv
 PORT=4000
 CORS_ORIGIN=http://localhost:3000
-SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_URL=http://127.0.0.1:55321
 SUPABASE_PUBLISHABLE_KEY=<local publishable or anon key>
 SUPABASE_SECRET_KEY=<local secret or service_role key>
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55322/postgres
 
 # Values used only from inside the API container on Docker Desktop.
-DOCKER_SUPABASE_URL=http://host.docker.internal:54321
-DOCKER_DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:54322/postgres
+DOCKER_SUPABASE_URL=http://host.docker.internal:55321
+DOCKER_DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:55322/postgres
 ```
 
 The normal URLs use `127.0.0.1` for commands running directly on Windows. The
@@ -124,9 +124,8 @@ Rebuild after changing source code or dependencies:
 docker compose up --build -d
 ```
 
-The production container intentionally does not mount the source tree or run
-`nodemon`. Use `npm run dev` directly on Windows when you want automatic
-reloads.
+The production container runs source modules directly. Use `npm.cmd run dev`
+on Windows for Node's built-in watch mode.
 
 Stop only the Express API container:
 
@@ -146,14 +145,14 @@ the local database.
 
 ## Ports
 
-| Windows port | Service |
-| --- | --- |
-| `3000` | Marketplace web app when run locally |
-| `4000` | Containerized Express API |
-| `54321` | Supabase Data/Auth API |
-| `54322` | Supabase PostgreSQL |
-| `54323` | Supabase Studio |
-| `54324` | Supabase local email viewer |
+| Windows port | Service                              |
+| ------------ | ------------------------------------ |
+| `3000`       | Marketplace web app when run locally |
+| `4000`       | Containerized Express API            |
+| `55321`      | Supabase Data/Auth API               |
+| `55322`      | Supabase PostgreSQL                  |
+| `55323`      | Supabase Studio                      |
+| `55324`      | Supabase local email viewer          |
 
 ## Configuration
 
@@ -161,7 +160,7 @@ The Compose service sets:
 
 - `PORT=4000` inside the API container.
 - `SUPABASE_URL` from `DOCKER_SUPABASE_URL`, defaulting to
-  `http://host.docker.internal:54321`.
+  `http://host.docker.internal:55321`.
 - `DATABASE_URL` from `DOCKER_DATABASE_URL`, defaulting to the local Supabase
   PostgreSQL port through `host.docker.internal`.
 - Supabase keys from `.env`.
@@ -189,11 +188,11 @@ Check that the Supabase stack is running and that its API is published:
 
 ```powershell
 npm run supabase:status
-Invoke-RestMethod http://localhost:54321
+Invoke-RestMethod http://localhost:55321
 ```
 
 For the containerized API, do not set `DOCKER_SUPABASE_URL` to `localhost` or
-`127.0.0.1`; use `http://host.docker.internal:54321`.
+`127.0.0.1`; use `http://host.docker.internal:55321`.
 
 ### Environment changes are not applied
 
@@ -217,8 +216,8 @@ docker compose config
 ```powershell
 docker build -t marketplace-api:local .
 docker run --rm -p 4000:4000 --env-file .env `
-  --env SUPABASE_URL=http://host.docker.internal:54321 `
-  --env DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:54322/postgres `
+  --env SUPABASE_URL=http://host.docker.internal:55321 `
+  --env DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:55322/postgres `
   marketplace-api:local
 ```
 
