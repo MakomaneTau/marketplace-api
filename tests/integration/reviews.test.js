@@ -1,3 +1,10 @@
+vi.mock("../../src/services/profile.service.js", () => ({
+  getProfile: vi.fn().mockResolvedValue({ role: "buyer" }),
+}));
+vi.mock("../../src/services/admin.service.js", () => ({
+  isAdmin: vi.fn().mockResolvedValue(false),
+}));
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import request from "supertest";
 vi.mock("../../src/services/auth.service.js", () => ({

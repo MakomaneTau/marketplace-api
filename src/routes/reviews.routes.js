@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/authenticate.js";
+import { requireBuyer } from "../middleware/require-buyer.js";
 import {
   createReview,
   productReviews,
@@ -8,4 +9,9 @@ import {
 export const reviewsRouter = Router();
 reviewsRouter.get("/products/:id/reviews", productReviews);
 reviewsRouter.get("/shops/:slug/reviews", shopReviews);
-reviewsRouter.post("/orders/:id/reviews", authenticate, createReview);
+reviewsRouter.post(
+  "/orders/:id/reviews",
+  authenticate,
+  requireBuyer,
+  createReview,
+);

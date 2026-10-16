@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/authenticate.js";
+import { requireBuyer } from "../middleware/require-buyer.js";
 import {
   unreadMessageCount,
   getConversation,
@@ -15,7 +16,7 @@ import {
 export const conversationsRouter = Router();
 conversationsRouter.use(authenticate);
 conversationsRouter.get("/", listConversations);
-conversationsRouter.post("/", startConversation);
+conversationsRouter.post("/", requireBuyer, startConversation);
 conversationsRouter.post("/orders/:orderId", startOrderConversation);
 conversationsRouter.get("/unread-count", unreadMessageCount);
 conversationsRouter.get("/:id", getConversation);
