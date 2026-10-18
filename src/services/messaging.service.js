@@ -207,6 +207,11 @@ export async function listNotifications(
   userId,
   { unreadOnly = false, limit = 50 } = {},
 ) {
+  const { error: reminderError } = await supabaseAdmin.rpc(
+    "market_pickup_reminders",
+    { p_user: userId },
+  );
+  if (reminderError) throw mapped(reminderError);
   let query = supabaseAdmin
     .from("notifications")
     .select("*", { count: "exact" })

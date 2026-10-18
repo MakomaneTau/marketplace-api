@@ -24,9 +24,15 @@ export function validateCreateOrder(input) {
     "pickupCampusId",
     "deliveryAddress",
     "pickupNotes",
+    "offerId",
   ]);
   for (const field of Object.keys(input))
     if (!allowed.has(field)) errors.push({ field, message: "is not allowed" });
+  if (
+    "offerId" in input &&
+    (typeof input.offerId !== "string" || !UUID.test(input.offerId))
+  )
+    errors.push({ field: "offerId", message: "must be a valid offer UUID" });
   if (
     !Array.isArray(input.items) ||
     input.items.length < 1 ||

@@ -115,6 +115,23 @@ export async function getOrder(orderId, userId) {
 }
 
 export async function createOrder(userId, input) {
+  if (input.offerId) {
+    const { data, error } = await supabaseAdmin.rpc("market_checkout_offer", {
+      p_actor: userId,
+      p_offer: input.offerId,
+      p_fulfilment: input.fulfilmentType,
+      p_campus: input.pickupCampusId || null,
+      p_address: input.deliveryAddress || null,
+      p_notes: input.pickupNotes || null,
+    });
+    if (error)
+      throw new OrderServiceError(
+        error.code === "42501" ? 403 : 409,
+        "OFFER_UNAVAILABLE",
+        "This offer cannot be checked out. It may have expired or the item may be unavailable.",
+      );
+    return getOrder(data, userId);
+  }
   const { data: orderId, error } = await supabaseAdmin.rpc(
     "create_marketplace_order",
     {
