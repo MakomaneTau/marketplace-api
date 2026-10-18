@@ -17,6 +17,7 @@ function createResponse() {
 
 function createRequest(authorization) {
   return {
+    method: "GET",
     get: vi.fn((header) =>
       header === "authorization" ? authorization : undefined,
     ),

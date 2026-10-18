@@ -12,7 +12,7 @@ export function requestLogger(req, res, next) {
         event: "http_request",
         request_id: res.locals.requestId,
         method: req.method,
-        path: req.originalUrl,
+        path: req.originalUrl.split("?", 1)[0],
         status: res.statusCode,
         duration_ms: Number(durationMs.toFixed(2)),
       }),

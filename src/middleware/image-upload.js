@@ -1,8 +1,9 @@
 import multer from "multer";
+import { uploadRateLimit } from "./rate-limit.js";
 
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-export const verificationUpload = multer({
+const verificationParser = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024,
@@ -23,7 +24,7 @@ export const verificationUpload = multer({
   { name: "sellerId", maxCount: 1 },
 ]);
 
-export const marketplaceImageUpload = multer({
+const marketplaceImageParser = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 0, parts: 2 },
   fileFilter(req, file, callback) {
@@ -35,3 +36,11 @@ export const marketplaceImageUpload = multer({
     return callback(null, true);
   },
 }).single("image");
+
+export function verificationUpload(req, res, next) {
+  uploadRateLimit(req, res, () => verificationParser(req, res, next));
+}
+
+export function marketplaceImageUpload(req, res, next) {
+  uploadRateLimit(req, res, () => marketplaceImageParser(req, res, next));
+}

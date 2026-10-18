@@ -1,6 +1,7 @@
 import { getUserFromAccessToken } from "../services/auth.service.js";
 import { parseBearerToken } from "../validators/auth.validator.js";
 import { sendError } from "../http/responses.js";
+import { mutationRateLimit } from "./rate-limit.js";
 
 function sendUnauthorized(res, code, message) {
   return sendError(res, { status: 401, code, message });
@@ -46,6 +47,8 @@ export async function authenticate(req, res, next) {
     }
 
     req.user = user;
+    if (!["GET", "HEAD", "OPTIONS"].includes(req.method))
+      return mutationRateLimit(req, res, next);
     return next();
   } catch {
     return sendError(res, {

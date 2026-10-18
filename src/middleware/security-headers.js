@@ -1,6 +1,9 @@
 import { config } from "../config/env.js";
 export function securityHeaders(req, res, next) {
   res.set({
+    "Cache-Control": "private, no-store",
+    "Content-Security-Policy":
+      "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
     "Cross-Origin-Resource-Policy": "same-site",
     "Referrer-Policy": "no-referrer",
     "X-Content-Type-Options": "nosniff",

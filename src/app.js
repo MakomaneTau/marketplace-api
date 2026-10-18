@@ -13,9 +13,26 @@ import { requestLogger } from "./middleware/request-logger.js";
 import { securityHeaders } from "./middleware/security-headers.js";
 
 const app = express();
+app.disable("x-powered-by");
 
-if (config.trustProxy) app.set("trust proxy", 1);
+if (config.trustProxy) app.set("trust proxy", config.trustProxy);
 
+app.use(requestContext);
+app.use(requestLogger);
+app.use(securityHeaders);
+app.use((req, res, next) => {
+  const origin = req.get("origin");
+  if (origin && !config.allowedOrigins.includes(origin)) {
+    return res.status(403).json({
+      error: {
+        code: "ORIGIN_NOT_ALLOWED",
+        message: "The request origin is not allowed.",
+        request_id: res.locals.requestId,
+      },
+    });
+  }
+  next();
+});
 app.use(
   cors({
     origin(origin, callback) {
@@ -26,11 +43,8 @@ app.use(
     credentials: true,
   }),
 );
-app.use(requestContext);
-app.use(requestLogger);
-app.use(securityHeaders);
 app.use(rateLimit);
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "1mb", inflate: false }));
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({

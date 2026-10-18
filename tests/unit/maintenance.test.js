@@ -20,6 +20,27 @@ function response() {
 }
 
 describe("runtime configuration", () => {
+  it("rejects broad proxy trust and invalid browser origins", () => {
+    expect(() => readConfig({ ...environment, TRUST_PROXY: "true" })).toThrow(
+      /TRUST_PROXY_CIDRS/,
+    );
+    for (const value of ["0.0.0.0/0", "::/0", "10.0.0.1/33", "*"])
+      expect(() =>
+        readConfig({ ...environment, TRUST_PROXY_CIDRS: value }),
+      ).toThrow(/TRUST_PROXY_CIDRS/);
+    expect(
+      readConfig({ ...environment, TRUST_PROXY_CIDRS: "127.0.0.1,10.2.0.0/24" })
+        .trustProxy,
+    ).toEqual(["127.0.0.1", "10.2.0.0/24"]);
+    for (const value of [
+      "*",
+      "https://user:password@example.com",
+      "https://example.com/path",
+    ])
+      expect(() =>
+        readConfig({ ...environment, CORS_ORIGINS: value }),
+      ).toThrow();
+  });
   it("rejects invalid ports and rate-limit values before starting", () => {
     for (const value of ["abc", "0", "-1", "65536", "4000suffix"]) {
       expect(() => readConfig({ ...environment, PORT: value })).toThrow(/PORT/);

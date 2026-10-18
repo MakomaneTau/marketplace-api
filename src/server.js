@@ -4,6 +4,10 @@ import { config } from "./config/env.js";
 const server = app.listen(config.port, () => {
   console.log(`API running on port ${config.port}`);
 });
+server.headersTimeout = 15_000;
+server.requestTimeout = 30_000;
+server.keepAliveTimeout = 5_000;
+server.maxRequestsPerSocket = 1000;
 
 let shuttingDown = false;
 function shutdown(signal) {

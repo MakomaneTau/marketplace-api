@@ -5,6 +5,19 @@ import { sendError } from "../http/responses.js";
 export function errorHandler(error, req, res, next) {
   if (res.headersSent) return next(error);
 
+  if (error?.type === "entity.too.large")
+    return sendError(res, {
+      status: 413,
+      code: "REQUEST_TOO_LARGE",
+      message: "The request body exceeds the allowed size.",
+    });
+  if (error?.type === "encoding.unsupported")
+    return sendError(res, {
+      status: 415,
+      code: "CONTENT_ENCODING_UNSUPPORTED",
+      message: "Compressed request bodies are not supported.",
+    });
+
   if (error?.type === "entity.parse.failed") {
     return sendError(res, {
       status: 400,
