@@ -10,8 +10,10 @@ import {
 } from "../controllers/auth.controller.js";
 import { authenticate } from "../middleware/authenticate.js";
 import { authRateLimit } from "../middleware/rate-limit.js";
+import mfaRouter from "./mfa.routes.js";
 
 const authRouter = Router();
+authRouter.use("/mfa", mfaRouter);
 
 authRouter.post("/signup", authRateLimit, signup);
 authRouter.post("/login", authRateLimit, login);

@@ -3,6 +3,7 @@ import { authenticate } from "../middleware/authenticate.js";
 import { sendError } from "../http/responses.js";
 import { AdminServiceError, requireAdmin } from "../services/admin.service.js";
 import * as controller from "../controllers/admin.controller.js";
+import { requireAdminMfa } from "../middleware/require-admin-mfa.js";
 
 const adminRouter = Router();
 adminRouter.use(authenticate);
@@ -26,6 +27,7 @@ adminRouter.use(async (req, res, next) => {
 });
 
 adminRouter.get("/access", controller.access);
+adminRouter.use(requireAdminMfa);
 adminRouter.get("/overview", controller.overview);
 adminRouter.get("/users", controller.users);
 adminRouter.patch("/users/:id/restriction", controller.restriction);

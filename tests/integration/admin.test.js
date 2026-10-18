@@ -38,13 +38,14 @@ import * as authService from "../../src/services/auth.service.js";
 import * as adminService from "../../src/services/admin.service.js";
 
 const id = "33333333-3333-4333-8333-333333333332";
+const adminToken = `Bearer header.${Buffer.from(JSON.stringify({ aal: "aal2" })).toString("base64url")}.signature`;
 const target = "33333333-3333-4333-8333-333333333333";
 
 describe("admin API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     authService.getUserFromAccessToken.mockResolvedValue({
-      user: { id },
+      user: { id, factors: [{ factor_type: "totp", status: "verified" }] },
       error: null,
     });
     adminService.requireAdmin.mockResolvedValue();
@@ -66,7 +67,7 @@ describe("admin API", () => {
     });
     const response = await request(app)
       .get("/api/v1/admin/overview")
-      .set("Authorization", "Bearer token");
+      .set("Authorization", adminToken);
     expect(response.status).toBe(403);
     expect(response.body.error.code).toBe("ACCOUNT_SUSPENDED");
     expect(adminService.requireAdmin).not.toHaveBeenCalled();
@@ -82,7 +83,7 @@ describe("admin API", () => {
     );
     const response = await request(app)
       .get("/api/v1/admin/overview")
-      .set("Authorization", "Bearer token");
+      .set("Authorization", adminToken);
     expect(response.status).toBe(403);
     expect(response.body.error.code).toBe("ADMIN_REQUIRED");
     expect(adminService.overview).not.toHaveBeenCalled();
@@ -99,9 +100,25 @@ describe("admin API", () => {
     adminService.overview.mockResolvedValue(overview);
     const response = await request(app)
       .get("/api/v1/admin/overview")
-      .set("Authorization", "Bearer token");
+      .set("Authorization", adminToken);
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ data: overview });
+  });
+
+  it("blocks password-only admins from reading or changing protected data", async () => {
+    for (const path of ["overview", "users", "reports", "verifications"]) {
+      const response = await request(app)
+        .get(`/api/v1/admin/${path}`)
+        .set("Authorization", "Bearer password-only");
+      expect(response.status).toBe(403);
+      expect(response.body.error.code).toBe("ADMIN_MFA_REQUIRED");
+    }
+    const write = await request(app)
+      .patch(`/api/v1/admin/users/${target}/restriction`)
+      .set("Authorization", "Bearer password-only")
+      .send({ suspended: true, reason: "Reason long enough" });
+    expect(write.status).toBe(403);
+    expect(adminService.setRestriction).not.toHaveBeenCalled();
   });
 
   it("allows admins to request resolved verification history", async () => {
@@ -109,7 +126,7 @@ describe("admin API", () => {
     adminService.listVerifications.mockResolvedValue(history);
     const response = await request(app)
       .get("/api/v1/admin/verifications?status=resolved")
-      .set("Authorization", "Bearer token");
+      .set("Authorization", adminToken);
     expect(response.status).toBe(200);
     expect(response.body.data).toEqual(history);
     expect(adminService.listVerifications).toHaveBeenCalledWith({
@@ -122,7 +139,7 @@ describe("admin API", () => {
   it("rejects invalid list filters", async () => {
     const response = await request(app)
       .get("/api/v1/admin/users?role=admin")
-      .set("Authorization", "Bearer token");
+      .set("Authorization", adminToken);
     expect(response.status).toBe(400);
     expect(adminService.listUsers).not.toHaveBeenCalled();
   });
@@ -130,7 +147,7 @@ describe("admin API", () => {
   it("requires a documented reason for suspension", async () => {
     const response = await request(app)
       .patch(`/api/v1/admin/users/${target}/restriction`)
-      .set("Authorization", "Bearer token")
+      .set("Authorization", adminToken)
       .send({ suspended: true, reason: "bad" });
     expect(response.status).toBe(400);
     expect(adminService.setRestriction).not.toHaveBeenCalled();
@@ -140,7 +157,7 @@ describe("admin API", () => {
     const reason = "Repeated unsafe conduct reported by users";
     const response = await request(app)
       .patch(`/api/v1/admin/users/${target}/restriction`)
-      .set("Authorization", "Bearer token")
+      .set("Authorization", adminToken)
       .send({ suspended: true, reason });
     expect(response.status).toBe(200);
     expect(adminService.setRestriction).toHaveBeenCalledWith(

@@ -2,6 +2,7 @@
 import { supabaseAdmin } from "../config/supabase.js";
 import { authenticate } from "../middleware/authenticate.js";
 import { requireAdmin } from "../services/admin.service.js";
+import { requireAdminMfa } from "../middleware/require-admin-mfa.js";
 import { checked, invalid } from "../services/community.service.js";
 import { sendData } from "../http/responses.js";
 import { ApiError } from "../errors/api-error.js";
@@ -10,6 +11,7 @@ router.use(authenticate, async (req, res, next) => {
   await requireAdmin(req.user.id);
   next();
 });
+router.use(requireAdminMfa);
 router.use("/:kind/:id", (req, res, next) => {
   if (
     !["report", "verification"].includes(req.params.kind) ||

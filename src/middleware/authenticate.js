@@ -47,6 +47,16 @@ export async function authenticate(req, res, next) {
     }
 
     req.user = user;
+    // getUserFromAccessToken has already verified this exact token with Auth.
+    // Never use an unverified JWT or user_metadata to grant assurance.
+    try {
+      const claims = JSON.parse(
+        Buffer.from(token.split(".")[1], "base64url").toString("utf8"),
+      );
+      req.authAssurance = claims.aal === "aal2" ? "aal2" : "aal1";
+    } catch {
+      req.authAssurance = "aal1";
+    }
     if (!["GET", "HEAD", "OPTIONS"].includes(req.method))
       return mutationRateLimit(req, res, next);
     return next();
