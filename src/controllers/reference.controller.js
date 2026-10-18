@@ -39,6 +39,14 @@ export async function listCategories(req, res) {
   }
 }
 
+export async function listDiscoveryCampuses(req, res) {
+  try {
+    return sendData(res, await referenceService.listDiscoveryCampuses());
+  } catch (error) {
+    return serviceError(res, error);
+  }
+}
+
 export async function getCategory(req, res) {
   const errors = validateSlug(req.params.slug);
   if (errors.length) return validationError(res, errors);

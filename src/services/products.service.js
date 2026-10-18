@@ -1,5 +1,6 @@
 import { ApiError } from "../errors/api-error.js";
 import { supabaseAdmin } from "../config/supabase.js";
+import { searchPattern } from "../http/search-filter.js";
 import {
   publicStoragePath,
   removePrivateImages,
@@ -105,10 +106,6 @@ export function getSellerProduct(productId, userId) {
   return getManagedProduct(productId, userId, PRODUCT_SELECT);
 }
 
-function escapeLike(value) {
-  return value.replace(/[\\%_]/g, "\\$&");
-}
-
 function applySort(query, sort) {
   if (sort === "price_asc") return query.order("price", { ascending: true });
   if (sort === "price_desc") return query.order("price", { ascending: false });
@@ -135,20 +132,49 @@ export async function listProducts(options = {}) {
   const limit = options.limit || 24;
   let query = supabaseAdmin
     .from("products")
-    .select(PRODUCT_SELECT, { count: "exact" })
+    .select(
+      options.campus
+        ? PRODUCT_SELECT.replace(
+            "is_open, rating, review_count)",
+            "is_open, rating, review_count, pickup_areas:shop_pickup_areas!inner(campus_id))",
+          )
+        : PRODUCT_SELECT,
+      { count: "exact" },
+    )
     .eq("status", "active")
-    .eq("shops.is_open", true)
-    .eq("shops.sellable", true);
+    .eq("shop.is_open", true)
+    .eq("shop.sellable", true);
 
   if (options.q) {
-    const value = escapeLike(options.q);
-    query = query.or(`title.ilike.%${value}%,description.ilike.%${value}%`);
+    const value = searchPattern(options.q);
+    query = query.or(`title.ilike.${value},description.ilike.${value}`);
   }
-  if (options.category) query = query.eq("categories.slug", options.category);
+  if (options.category) query = query.eq("category.slug", options.category);
   if (options.slug) query = query.eq("slug", options.slug);
-  if (options.shop) query = query.eq("shops.slug", options.shop);
+  if (options.shop) query = query.eq("shop.slug", options.shop);
   if (options.condition) query = query.eq("condition", options.condition);
+  if (options.campus)
+    query = query
+      .eq("shop.pickup_areas.campus_id", options.campus)
+      .eq("allows_campus_pickup", true);
+  if (options.minPrice !== undefined)
+    query = query.gte("price", options.minPrice);
+  if (options.maxPrice !== undefined)
+    query = query.lte("price", options.maxPrice);
+  if (options.fulfilment)
+    query = query.eq(
+      options.fulfilment === "delivery"
+        ? "allows_delivery"
+        : "allows_campus_pickup",
+      true,
+    );
+  if (options.collection === "this-week")
+    query = query.gte(
+      "created_at",
+      new Date(Date.now() - 7 * 86400000).toISOString(),
+    );
   query = applySort(query, options.sort);
+  query = query.order("id", { ascending: true });
   query = query.range((page - 1) * limit, page * limit - 1);
 
   const { data, error, count } = await query;
@@ -187,10 +213,10 @@ export async function listSellerProducts(userId, options = {}) {
     .select(PRODUCT_SELECT, { count: "exact" })
     .eq("shop_id", shop.id);
   if (options.q) {
-    const value = escapeLike(options.q);
-    query = query.or(`title.ilike.%${value}%,description.ilike.%${value}%`);
+    const value = searchPattern(options.q);
+    query = query.or(`title.ilike.${value},description.ilike.${value}`);
   }
-  if (options.category) query = query.eq("categories.slug", options.category);
+  if (options.category) query = query.eq("category.slug", options.category);
   if (options.condition) query = query.eq("condition", options.condition);
   if (options.status) query = query.eq("status", options.status);
   query = applySort(query, options.sort).range(
@@ -231,8 +257,8 @@ export async function getProduct(productId) {
     .select(PRODUCT_SELECT)
     .eq("id", productId)
     .eq("status", "active")
-    .eq("shops.is_open", true)
-    .eq("shops.sellable", true)
+    .eq("shop.is_open", true)
+    .eq("shop.sellable", true)
     .maybeSingle();
 
   if (error) throw databaseError(error);

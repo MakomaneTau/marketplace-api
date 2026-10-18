@@ -202,6 +202,14 @@ export function validateProductListQuery(query, { seller = false } = {}) {
   else {
     allowed.add("slug");
     allowed.add("shop");
+    for (const field of [
+      "campus",
+      "min_price",
+      "max_price",
+      "fulfilment",
+      "collection",
+    ])
+      allowed.add(field);
   }
   for (const field of Object.keys(query)) {
     if (!allowed.has(field)) addError(errors, field, "is not allowed");
@@ -229,6 +237,37 @@ export function validateProductListQuery(query, { seller = false } = {}) {
     addError(errors, "shop", "must be a valid shop slug");
   if ("condition" in query && !CONDITIONS.has(query.condition))
     addError(errors, "condition", "must be a valid product condition");
+  if (
+    "campus" in query &&
+    (typeof query.campus !== "string" || !UUID_PATTERN.test(query.campus))
+  )
+    addError(errors, "campus", "must be a valid campus UUID");
+  if ("collection" in query && query.collection !== "this-week")
+    addError(errors, "collection", "must be this-week");
+  for (const field of ["min_price", "max_price"]) {
+    if (
+      field in query &&
+      (typeof query[field] !== "string" ||
+        !/^\d+(\.\d{1,2})?$/.test(query[field]) ||
+        Number(query[field]) > 9999999999.99)
+    )
+      addError(
+        errors,
+        field,
+        "must be a non-negative amount with at most two decimal places",
+      );
+  }
+  if (
+    query.min_price !== undefined &&
+    query.max_price !== undefined &&
+    Number(query.min_price) > Number(query.max_price)
+  )
+    addError(errors, "max_price", "must be at least the minimum price");
+  if (
+    "fulfilment" in query &&
+    !["campus_pickup", "delivery"].includes(query.fulfilment)
+  )
+    addError(errors, "fulfilment", "must be campus_pickup or delivery");
   if ("status" in query && !STATUSES.has(query.status))
     addError(errors, "status", "must be a valid listing status");
   if ("sort" in query && !SORTS.has(query.sort))

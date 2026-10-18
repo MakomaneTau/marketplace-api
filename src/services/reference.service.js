@@ -3,6 +3,15 @@ import { supabaseAdmin } from "../config/supabase.js";
 
 export class ReferenceServiceError extends ApiError {}
 
+export async function listDiscoveryCampuses() {
+  const { data, error } = await supabaseAdmin
+    .from("campuses")
+    .select("id,name,city,university:universities(name,acronym)")
+    .order("name", { ascending: true });
+  if (error) throw unavailable();
+  return data;
+}
+
 function unavailable() {
   return new ReferenceServiceError(
     503,

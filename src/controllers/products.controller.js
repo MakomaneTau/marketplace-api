@@ -30,6 +30,17 @@ export async function listProducts(req, res) {
       category: req.query.category,
       slug: req.query.slug,
       shop: req.query.shop,
+      campus: req.query.campus,
+      minPrice:
+        req.query.min_price === undefined
+          ? undefined
+          : Number(req.query.min_price),
+      maxPrice:
+        req.query.max_price === undefined
+          ? undefined
+          : Number(req.query.max_price),
+      fulfilment: req.query.fulfilment,
+      collection: req.query.collection,
       condition: req.query.condition,
       sort: req.query.sort,
       page: req.query.page ? Number(req.query.page) : 1,
