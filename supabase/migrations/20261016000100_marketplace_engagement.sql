@@ -1,4 +1,4 @@
-﻿-- Engagement features remain API-owned: clients cannot bypass role or ownership checks.
+-- Engagement features remain API-owned: clients cannot bypass role or ownership checks.
 create table public.saved_searches (
  id uuid primary key default gen_random_uuid(), user_id uuid not null references public.profiles(id) on delete cascade,
  name text not null check(length(trim(name)) between 1 and 80), filters jsonb not null default '{}',
