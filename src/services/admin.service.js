@@ -19,6 +19,18 @@ function checked(result) {
 
 function rpcError(error) {
   const code = error?.message;
+  if (code === "QUEUE_ALREADY_ASSIGNED")
+    return new AdminServiceError(
+      409,
+      code,
+      "Another admin has claimed this review. Ask them to release it first.",
+    );
+  if (code === "QUEUE_ITEM_UNAVAILABLE")
+    return new AdminServiceError(
+      409,
+      code,
+      "This review has already been completed. Refresh the queue.",
+    );
   if (code === "ADMIN_TARGET_FORBIDDEN")
     return new AdminServiceError(
       403,
@@ -154,7 +166,7 @@ export async function listReports({ status, page, limit }) {
       "id,category,details,status,created_at,subject_user_id,product_id,resolution_note,reporter:profiles!safety_reports_reporter_id_fkey(display_name),subject:profiles!safety_reports_subject_user_id_fkey(display_name)",
       { count: "exact" },
     )
-    .order("created_at", { ascending: false })
+    .order("created_at", { ascending: status === "open" })
     .range((page - 1) * limit, page * limit - 1);
   if (status) query = query.eq("status", status);
   const { data, count } = checked(await query);
@@ -178,9 +190,10 @@ export async function listReports({ status, page, limit }) {
 }
 
 export async function decideReport(actorId, reportId, status, note) {
-  const { error } = await supabaseAdmin.rpc("admin_decide_report", {
+  const { error } = await supabaseAdmin.rpc("market_decide_queue", {
     p_actor: actorId,
-    p_report: reportId,
+    p_kind: "report",
+    p_id: reportId,
     p_status: status,
     p_note: note,
   });
@@ -195,7 +208,7 @@ export async function listVerifications({ status, page, limit }) {
       { count: "exact" },
     )
     .order(status === "resolved" ? "reviewed_at" : "created_at", {
-      ascending: false,
+      ascending: status === "pending",
     })
     .range((page - 1) * limit, page * limit - 1);
   if (status === "resolved")
@@ -251,11 +264,12 @@ export async function reviewVerification(
   status,
   reason,
 ) {
-  const { error } = await supabaseAdmin.rpc("admin_review_verification", {
+  const { error } = await supabaseAdmin.rpc("market_decide_queue", {
     p_actor: actorId,
-    p_verification: verificationId,
+    p_kind: "verification",
+    p_id: verificationId,
     p_status: status,
-    p_reason: reason || "",
+    p_note: reason || "",
   });
   if (error) throw rpcError(error);
 }

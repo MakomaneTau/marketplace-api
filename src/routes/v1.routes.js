@@ -19,6 +19,7 @@ import onboardingRouter from "./onboarding.routes.js";
 import adminRouter from "./admin.routes.js";
 import reportsRouter from "./reports.routes.js";
 import communityRouter from "./community.routes.js";
+import adminQueueRouter from "./admin-queue.routes.js";
 
 const v1Router = Router();
 
@@ -42,5 +43,6 @@ v1Router.use("/onboarding", onboardingRouter);
 v1Router.use("/admin", adminRouter);
 v1Router.use("/reports", reportsRouter);
 v1Router.use(communityRouter);
+v1Router.use("/admin-queue", adminQueueRouter);
 
 export default v1Router;
