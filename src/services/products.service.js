@@ -333,7 +333,7 @@ export async function deleteProduct(productId, userId) {
     .eq("id", productId);
   if (error) throw databaseError(error);
   const paths = (product.image_urls || [])
-    .map((url) => publicStoragePath(url, IMAGE_BUCKET))
+    .map((url) => publicStoragePath(url, IMAGE_BUCKET, userId, productId))
     .filter(Boolean);
   await removePrivateImages(IMAGE_BUCKET, paths);
 }
@@ -395,7 +395,7 @@ export async function removeProductImage(productId, imageIndex, userId) {
     .select()
     .single();
   if (error) throw databaseError(error);
-  const path = publicStoragePath(removedUrl, IMAGE_BUCKET);
+  const path = publicStoragePath(removedUrl, IMAGE_BUCKET, userId, productId);
   if (path) await removePrivateImages(IMAGE_BUCKET, [path]);
   return data;
 }

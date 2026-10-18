@@ -1,4 +1,5 @@
 import { config } from "../config/env.js";
+import { boundedFetch } from "../http/bounded-fetch.js";
 import { ApiError } from "../errors/api-error.js";
 import { supabaseAuth } from "../config/supabase-auth.js";
 import { supabaseAdmin } from "../config/supabase.js";
@@ -345,7 +346,7 @@ export async function refresh(refreshToken) {
 async function authApiRequest(path, { token, method = "POST", body } = {}) {
   let response;
   try {
-    response = await fetch(`${config.supabaseUrl}/auth/v1${path}`, {
+    response = await boundedFetch(`${config.supabaseUrl}/auth/v1${path}`, {
       method,
       headers: {
         apikey: config.supabasePublishableKey,

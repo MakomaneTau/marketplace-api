@@ -167,7 +167,7 @@ export async function updateShopImage(userId, kind, file) {
   if (!shop)
     throw new ShopServiceError(404, "SHOP_NOT_FOUND", "Shop not found.");
   const field = kind === "logo" ? "logo_url" : "banner_url";
-  const previousPath = publicStoragePath(shop[field], BUCKET);
+  const previousPath = publicStoragePath(shop[field], BUCKET, userId, shop.id);
   const uploaded = await uploadPublicImage({
     bucket: BUCKET,
     ownerId: userId,
