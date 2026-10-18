@@ -343,7 +343,10 @@ export async function refresh(refreshToken) {
   return sessionDto(data);
 }
 
-export async function authApiRequest(path, { token, method = "POST", body } = {}) {
+export async function authApiRequest(
+  path,
+  { token, method = "POST", body } = {},
+) {
   let response;
   try {
     response = await boundedFetch(`${config.supabaseUrl}/auth/v1${path}`, {
