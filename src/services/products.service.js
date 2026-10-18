@@ -251,6 +251,33 @@ export async function createSellerProduct(input, userId) {
   return createProduct({ ...input, shop_id: shop.id, image_urls: [] }, userId);
 }
 
+export async function duplicateProduct(productId, userId) {
+  const source = await getManagedProduct(productId, userId, "*");
+  const fields = Object.fromEntries(
+    [
+      "shop_id",
+      "category_id",
+      "description",
+      "condition",
+      "price",
+      "currency",
+      "stock_quantity",
+      "pickup_location",
+      "allows_campus_pickup",
+      "allows_delivery",
+    ].map((key) => [key, source[key]]),
+  );
+  return createProduct(
+    {
+      ...fields,
+      title: `${source.title.slice(0, 90)} (copy)`,
+      status: "draft",
+      image_urls: [],
+    },
+    userId,
+  );
+}
+
 export async function getProduct(productId) {
   const { data, error } = await supabaseAdmin
     .from("products")

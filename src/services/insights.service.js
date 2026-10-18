@@ -24,10 +24,10 @@ async function shop(user) {
 }
 export async function dashboard(user) {
   const s = await shop(user);
-  const [p, o, n, m] = await Promise.all([
+  const [p, o, n, m, openOrders] = await Promise.all([
     supabaseAdmin
       .from("products")
-      .select("id,status,view_count", { count: "exact" })
+      .select("id,title,status,stock_quantity,view_count", { count: "exact" })
       .eq("shop_id", s.id),
     supabaseAdmin
       .from("orders")
@@ -44,19 +44,26 @@ export async function dashboard(user) {
       .from("conversations")
       .select("id,messages(id,sender_id,read_at)")
       .eq("seller_id", user),
+    supabaseAdmin
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("shop_id", s.id)
+      .in("status", ["new", "preparing", "ready"]),
   ]);
-  if ([p, o, n, m].some((x) => x.error)) throw fail();
+  if ([p, o, n, m, openOrders].some((x) => x.error)) throw fail();
   return {
     shop: s,
     products: {
       total: p.count || 0,
       active: p.data.filter((x) => x.status === "active").length,
       views: p.data.reduce((a, x) => a + x.view_count, 0),
+      low_stock: p.data.filter(
+        (x) => x.status === "active" && x.stock_quantity <= 3,
+      ),
     },
     orders: {
       total: o.count || 0,
-      open: o.data.filter((x) => !["completed", "cancelled"].includes(x.status))
-        .length,
+      open: openOrders.count || 0,
       recent: o.data,
     },
     unread_notifications: n.count || 0,
