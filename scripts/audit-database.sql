@@ -7,6 +7,22 @@ declare
   violation_count integer;
 begin
   select count(*) into violation_count
+  from information_schema.role_table_grants
+  where table_schema = 'public' and grantee in ('PUBLIC', 'anon', 'authenticated')
+    and privilege_type in ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER');
+  if violation_count > 0 then
+    raise exception 'DATABASE_AUDIT_FAILED: % client write grants bypass the API', violation_count;
+  end if;
+
+  select count(*) into violation_count
+  from information_schema.column_privileges
+  where table_schema = 'public' and grantee in ('PUBLIC', 'anon', 'authenticated')
+    and privilege_type in ('INSERT', 'UPDATE', 'REFERENCES');
+  if violation_count > 0 then
+    raise exception 'DATABASE_AUDIT_FAILED: % client column write grants bypass the API', violation_count;
+  end if;
+
+  select count(*) into violation_count
   from pg_tables
   where schemaname = 'public'
     and not rowsecurity;
