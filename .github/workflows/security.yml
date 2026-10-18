@@ -1,0 +1,23 @@
+name: Production dependency security
+
+on:
+  pull_request:
+  push:
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Audit the lockfile without executing dependency install scripts.
+      - run: npm audit --omit=dev --audit-level=high
