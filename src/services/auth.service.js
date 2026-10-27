@@ -244,7 +244,7 @@ export async function signup(input) {
           lastName: input.lastName.trim(),
           display_name: `${input.firstName.trim()} ${input.lastName.trim()}`,
           role: input.role,
-          isStudent: input.role === "buyer" || input.isStudent === true,
+          isStudent: input.isStudent === true,
         },
       },
     }));

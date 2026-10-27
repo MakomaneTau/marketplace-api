@@ -7,6 +7,7 @@ import {
   refresh,
   resetPassword,
   signup,
+  switchRole,
 } from "../controllers/auth.controller.js";
 import { authenticate } from "../middleware/authenticate.js";
 import { authRateLimit } from "../middleware/rate-limit.js";
@@ -22,5 +23,6 @@ authRouter.post("/forgot-password", authRateLimit, forgotPassword);
 authRouter.post("/reset-password", authenticate, resetPassword);
 authRouter.post("/logout", authenticate, logout);
 authRouter.get("/me", authenticate, getCurrentUser);
+authRouter.post("/switch-role", authenticate, authRateLimit, switchRole);
 
 export default authRouter;

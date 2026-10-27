@@ -54,7 +54,35 @@ export async function login(req, res) {
   const errors = validateLogin(req.body);
   if (errors.length) return validationError(res, errors);
   try {
-    return sendData(res, await authService.login(req.body));
+    const result = await authService.login(req.body);
+    if (req.body.role && !(await isAdmin(result.user.id))) {
+      await profileService.switchRole(result.user.id, req.body.role);
+    }
+    return sendData(res, result);
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+export async function switchRole(req, res) {
+  const input = req.body;
+  if (
+    !input ||
+    typeof input !== "object" ||
+    Array.isArray(input) ||
+    Object.keys(input).some((key) => key !== "role") ||
+    !["buyer", "seller"].includes(input.role)
+  ) {
+    return validationError(res, [
+      { field: "role", message: "must be buyer or seller" },
+    ]);
+  }
+  try {
+    const profile = await profileService.switchRole(req.user.id, input.role);
+    return sendData(res, {
+      user: req.user,
+      profile: { ...profile, isAdmin: false },
+    });
   } catch (error) {
     return handleError(res, error);
   }

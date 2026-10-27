@@ -33,6 +33,7 @@ vi.mock("../../src/services/profile.service.js", () => {
     ProfileServiceError,
     getProfile: vi.fn(),
     updateProfile: vi.fn(),
+    switchRole: vi.fn(),
   };
 });
 
@@ -88,7 +89,8 @@ describe("account API", () => {
     expect(authService.signup).toHaveBeenCalledWith(input);
   });
 
-  it("rejects a non-student buyer", async () => {
+  it("creates a non-student buyer without a university", async () => {
+    authService.signup.mockResolvedValue(session);
     const response = await request(app).post("/api/v1/auth/signup").send({
       firstName: "Test",
       lastName: "Buyer",
@@ -98,9 +100,8 @@ describe("account API", () => {
       isStudent: false,
     });
 
-    expect(response.status).toBe(400);
-    expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    expect(authService.signup).not.toHaveBeenCalled();
+    expect(response.status).toBe(201);
+    expect(authService.signup).toHaveBeenCalled();
   });
 
   it.each([undefined, "university-of-the-witwatersrand"])(
@@ -123,7 +124,8 @@ describe("account API", () => {
     },
   );
 
-  it("still requires a university for buyers", async () => {
+  it("allows buyers to omit university", async () => {
+    authService.signup.mockResolvedValue(session);
     const response = await request(app).post("/api/v1/auth/signup").send({
       firstName: "Test",
       lastName: "Buyer",
@@ -131,11 +133,8 @@ describe("account API", () => {
       password: "SecurePassword123!",
       role: "buyer",
     });
-    expect(response.status).toBe(400);
-    expect(response.body.error.details).toContainEqual(
-      expect.objectContaining({ field: "universitySlug" }),
-    );
-    expect(authService.signup).not.toHaveBeenCalled();
+    expect(response.status).toBe(201);
+    expect(authService.signup).toHaveBeenCalled();
   });
 
   it("returns a session for valid login credentials", async () => {
@@ -281,5 +280,63 @@ describe("account API", () => {
       message:
         "Your new password must be different from your current password.",
     });
+  });
+});
+
+describe("marketplace mode endpoints", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    adminService.isAdmin.mockResolvedValue(false);
+    authenticate();
+  });
+  it.each(["buyer", "seller"])(
+    "signs in to %s mode after authentication",
+    async (role) => {
+      authService.login.mockResolvedValue(session);
+      const result = await request(app)
+        .post("/api/v1/auth/login")
+        .send({ email: user.email, password: "Password123!", role });
+      expect(result.status).toBe(200);
+      expect(profileService.switchRole).toHaveBeenCalledWith(user.id, role);
+    },
+  );
+  it("keeps admin login in the admin experience", async () => {
+    authService.login.mockResolvedValue(session);
+    adminService.isAdmin.mockResolvedValue(true);
+    const result = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: user.email, password: "Password123!", role: "seller" });
+    expect(result.status).toBe(200);
+    expect(profileService.switchRole).not.toHaveBeenCalled();
+  });
+  it("switches only the authenticated account and returns its authoritative profile", async () => {
+    profileService.switchRole.mockResolvedValue({ ...profile, role: "seller" });
+    const result = await request(app)
+      .post("/api/v1/auth/switch-role")
+      .set("Authorization", "Bearer access-token")
+      .send({ role: "seller" });
+    expect(result.status).toBe(200);
+    expect(profileService.switchRole).toHaveBeenCalledWith(user.id, "seller");
+    expect(result.body.data.profile.role).toBe("seller");
+  });
+  it.each([
+    { role: "admin" },
+    { role: "seller", userId: "someone-else" },
+    {},
+    [],
+  ])("rejects invalid or privileged mode changes %j", async (body) => {
+    const result = await request(app)
+      .post("/api/v1/auth/switch-role")
+      .set("Authorization", "Bearer access-token")
+      .send(body);
+    expect(result.status).toBe(400);
+    expect(profileService.switchRole).not.toHaveBeenCalled();
+  });
+  it("requires a session", async () => {
+    const result = await request(app)
+      .post("/api/v1/auth/switch-role")
+      .send({ role: "seller" });
+    expect(result.status).toBe(401);
+    expect(profileService.switchRole).not.toHaveBeenCalled();
   });
 });

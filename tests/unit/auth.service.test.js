@@ -87,7 +87,7 @@ describe("signup without student numbers", () => {
         universitySlug: "test-university",
       });
       const metadata = mocks.signUp.mock.calls[0][0].options.data;
-      expect(metadata.isStudent).toBe(role === "buyer");
+      expect(metadata.isStudent).toBe(false);
       expect(metadata).not.toHaveProperty("studentNumber");
     },
   );

@@ -1,6 +1,7 @@
 import { config } from "../config/env.js";
 import { ApiError } from "../errors/api-error.js";
 import { supabaseAdmin } from "../config/supabase.js";
+import { isAdmin } from "./admin.service.js";
 
 const PROFILE_SELECT = `
   *,
@@ -26,7 +27,10 @@ function toProfileDto(profile) {
     displayName: profile.display_name,
     phone: profile.phone,
     avatarUrl: profile.avatar_url,
-    role: profile.role,
+    // `role` remains the active mode in the API contract. The database role
+    // retains seller capability so a shop stays sellable while its owner buys.
+    role: profile.active_role ?? profile.role,
+    canSell: profile.role === "seller",
     isStudent: profile.is_student,
     university: profile.university,
     campus: profile.campus,
@@ -97,6 +101,39 @@ export async function resolveUniversityId(slug) {
   return data.id;
 }
 
+export async function switchRole(userId, role) {
+  if (!["buyer", "seller"].includes(role)) {
+    throw new ProfileServiceError(
+      400,
+      "ROLE_INVALID",
+      "Choose buyer or seller.",
+    );
+  }
+  if (await isAdmin(userId)) {
+    throw new ProfileServiceError(
+      403,
+      "ADMIN_MODE_REQUIRED",
+      "Admin accounts cannot switch marketplace modes.",
+    );
+  }
+  // Never downgrade the persistent seller capability when switching to buying.
+  const update = { active_role: role, ...(role === "seller" ? { role } : {}) };
+  const { data, error } = await supabaseAdmin
+    .from("profiles")
+    .update(update)
+    .eq("id", userId)
+    .select(PROFILE_SELECT)
+    .maybeSingle();
+  if (error) throw unavailable();
+  if (!data)
+    throw new ProfileServiceError(
+      404,
+      "PROFILE_NOT_FOUND",
+      "Profile not found.",
+    );
+  return toProfileDto(data);
+}
+
 async function validateCampus(campusId, universityId) {
   if (campusId === null) return null;
   let query = supabaseAdmin
@@ -152,25 +189,6 @@ export async function updateProfile(userId, input) {
   }
 
   if (input.isStudent === false) {
-    const { data: current, error: currentError } = await supabaseAdmin
-      .from("profiles")
-      .select("role")
-      .eq("id", userId)
-      .maybeSingle();
-    if (currentError) throw unavailable();
-    if (!current)
-      throw new ProfileServiceError(
-        404,
-        "PROFILE_NOT_FOUND",
-        "Profile not found.",
-      );
-    if (current.role === "buyer") {
-      throw new ProfileServiceError(
-        400,
-        "BUYER_STUDENT_REQUIRED",
-        "Buyer accounts must remain student accounts.",
-      );
-    }
     update.university_id = null;
     update.campus_id = null;
     update.student_number = null;

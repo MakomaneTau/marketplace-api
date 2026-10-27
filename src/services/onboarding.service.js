@@ -73,7 +73,7 @@ export async function getOnboarding(userId) {
   const [profileResult, preferenceResult] = await Promise.all([
     supabaseAdmin
       .from("profiles")
-      .select("role,campus_id")
+      .select("role,active_role,campus_id")
       .eq("id", userId)
       .single(),
     supabaseAdmin
@@ -84,15 +84,16 @@ export async function getOnboarding(userId) {
   ]);
 
   const profile = ensureNoError(profileResult);
+  const role = profile.active_role ?? profile.role;
   const preference = ensureNoError(preferenceResult);
   const steps =
-    profile.role === "seller"
+    role === "seller"
       ? await getSellerSteps(userId)
       : await getBuyerSteps(userId, profile);
 
   return {
     version: CURRENT_VERSION,
-    role: profile.role,
+    role,
     welcomeSeen:
       preference?.version === CURRENT_VERSION &&
       Boolean(preference.welcome_seen_at),

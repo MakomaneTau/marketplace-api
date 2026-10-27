@@ -74,11 +74,7 @@ export function validateSignup(input) {
   if (input.isStudent !== undefined && typeof input.isStudent !== "boolean") {
     errors.push({ field: "isStudent", message: "must be a boolean" });
   }
-  if (input.role === "buyer" && input.isStudent === false) {
-    errors.push({ field: "isStudent", message: "buyers must be students" });
-  }
-
-  if (input.role === "buyer" || input.universitySlug != null) {
+  if (input.universitySlug != null) {
     requiredString(input.universitySlug, "universitySlug", errors, {
       max: 150,
     });
@@ -92,7 +88,10 @@ export function validateLogin(input) {
     return [{ field: "body", message: "must be a JSON object" }];
   }
   const errors = [];
-  rejectUnknown(input, new Set(["email", "password"]), errors);
+  rejectUnknown(input, new Set(["email", "password", "role"]), errors);
+  if (input.role !== undefined && !["buyer", "seller"].includes(input.role)) {
+    errors.push({ field: "role", message: "must be buyer or seller" });
+  }
   validateEmail(input.email, errors);
   requiredString(input.password, "password", errors, { min: 1, max: 72 });
   return errors;
