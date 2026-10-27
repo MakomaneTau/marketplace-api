@@ -102,7 +102,7 @@ src/
   middleware/            Auth, uploads, headers, rate limiting, and logging
 tests/
   unit/                  Isolated service/helper tests
-  integration/           Express HTTP contracts with mocked services
+  integration/           Express HTTP contracts and route-to-service flows
   setup/                 Test environment
 scripts/                 Syntax checks, local acceptance/smoke tests, admin setup
 supabase/                Config, immutable migrations, seeds, and SQL tests
@@ -122,8 +122,14 @@ npm.cmd run audit:production
 ```
 
 The `typecheck` and `build` scripts are JavaScript syntax checks, not static
-type checks or bundling. The API runs source modules directly. `npm test` uses
-mocked services and does not require a live database. Local smoke commands
+type checks or bundling. The API runs source modules directly. `npm test` runs all
+unit and integration tests. Use `npm.cmd run test:unit` or
+`npm.cmd run test:integration` to run one layer. Unit tests cover validators,
+services, and middleware. Integration tests exercise Express HTTP contracts;
+`order-service-flow.test.js` also retains the real controller, validation,
+authorization middleware, and order service, with Auth/profile lookups and the
+database client mocked. These suites do not require or verify a live database.
+Local smoke commands
 exercise the real Supabase stack; see `scripts/acceptance-local.ps1` and
 [docs/ADMIN_OPERATIONS.md](docs/ADMIN_OPERATIONS.md).
 
