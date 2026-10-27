@@ -12,7 +12,9 @@ const ORDER_SELECT = `
 export class OrderServiceError extends ApiError {}
 
 function mapError(error) {
-  const code = error?.message?.match(/ORDER_[A-Z_]+/)?.[0];
+  const code = error?.message?.match(
+    /ORDER_[A-Z_]+|SELLER_APPROVAL_REQUIRED/,
+  )?.[0];
   const errors = {
     SELLER_APPROVAL_REQUIRED: [
       409,
